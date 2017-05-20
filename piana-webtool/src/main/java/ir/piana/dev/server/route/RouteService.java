@@ -1,0 +1,118 @@
+package ir.piana.dev.server.route;
+
+import ir.piana.dev.server.asset.PianaAssetResolver;
+import ir.piana.dev.server.config.PianaServerConfig;
+import ir.piana.dev.server.response.PianaResponse;
+import ir.piana.dev.server.session.Session;
+import ir.piana.dev.server.session.SessionManager;
+import org.apache.log4j.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response.Status;
+import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * @author Mohammad Rahmati, 5/3/2017 7:28 AM
+ */
+public class RouteService {
+    protected Logger logger = Logger
+            .getLogger(RouteService.class);
+    @Context
+    protected Configuration config;
+    protected PianaServerConfig serverConfig = null;
+    protected SessionManager sessionManager = null;
+    protected Map<String, Method> methodMap =
+            new LinkedHashMap<>();
+    protected Map<String, PianaAssetResolver> assetMap =
+            new LinkedHashMap<>();
+    protected static PianaAssetResolver pianaAssetResolver = null;
+    protected static PianaResponse unauthorizedPianaResponse =
+            new PianaResponse(Status.UNAUTHORIZED, null);
+    protected static PianaResponse internalServerErrorPianaResponse =
+            new PianaResponse(Status.INTERNAL_SERVER_ERROR, null);
+
+    public RouteService() {
+    }
+
+    @PostConstruct
+    protected void init()
+            throws Exception {
+        serverConfig = (PianaServerConfig) config
+                .getProperty(PianaServerConfig
+                        .PIANA_SERVER_CONFIG);
+        sessionManager = (SessionManager) config
+                .getProperty(SessionManager
+                        .PIANA_SESSION_MANAGER);
+    }
+
+    protected PianaAssetResolver registerAssetResolver(
+            String urlPath, String assetPath) {
+        PianaAssetResolver assetResolver = assetMap
+                .get(urlPath);
+        if(assetResolver == null) {
+            assetResolver = PianaAssetResolver
+                    .getInstance(assetPath);
+            assetMap.put(urlPath, assetResolver);
+            return assetResolver;
+        }
+        return assetResolver;
+    }
+
+    protected Method registerMethod(
+            String urlPath,
+            String callClassName,
+            String callMethodName,
+            Class<?>... paramList
+    ) throws Exception {
+        Method method = methodMap.get(urlPath);
+        if(method == null) {
+            Class c = Class.forName(callClassName);
+            method = c.getDeclaredMethod(
+                    callMethodName, paramList);
+            methodMap.put(urlPath, method);
+            return method;
+        }
+        return method;
+    }
+
+    protected Session doAuthorization(
+            HttpHeaders httpHeaders) {
+        return sessionManager
+                .retrieveSession(httpHeaders);
+    }
+
+    protected Session doRevivalSession(
+            HttpHeaders httpHeaders) {
+        return sessionManager
+                .revivalSession(httpHeaders);
+    }
+
+    protected PianaResponse invokeMethod(
+            Method method,
+            Object... parameters
+    ) throws Exception {
+        return (PianaResponse) method
+                .invoke(null, parameters);
+    }
+
+    protected Response createResponse(
+            PianaResponse pianaResponse, Session session) {
+        NewCookie sessionCookie = sessionManager
+                .registerCookie(session);
+        Response.ResponseBuilder resBuilder = Response
+                .status(
+                        pianaResponse.getResponseStatus())
+                .entity(pianaResponse.getEntity())
+                .header("Content-Type",
+                        pianaResponse.getMediaType()
+                                .concat("; charset=")
+                                .concat(pianaResponse.getCharset()
+                                        .displayName()));
+        if(sessionCookie != null)
+            resBuilder.cookie(sessionCookie);
+        return resBuilder.build();
+    }
+}
