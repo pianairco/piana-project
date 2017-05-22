@@ -91,7 +91,11 @@ public class PianaRouterConfig
             if (getString(ASSET_PATH_CONFIG) != null) {
                 File file = new File(
                         getString(ASSET_PATH_CONFIG));
-                if (file.exists() && file.isDirectory())
+                if (!file.exists()){
+                    logger.error("asset path not is correct path.");
+                } else if(!file.isDirectory()) {
+                    logger.error("asset path not is a directory.");
+                } else
                     return true;
             }
             return false;

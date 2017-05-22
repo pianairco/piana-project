@@ -1,0 +1,25 @@
+{
+  "server-type": "netty",
+  "http-ip": "localhost",
+  "http-port": "8001",
+  "http-base-route": "",
+  "rest-filters": [
+  ],
+  "session":{
+    "session-name": "PIANA_SESSION",
+    "session-cache-size": "500",
+    "session-expire-second": "60"
+  },
+  "cors": {
+    "access-control-allow-origin": [
+      "http://localhost:3000"
+    ],
+    "access-control-allow-headers": [
+      "origin", "content-type", "accept", "authorization"
+    ],
+    "access-control-allow-credentials": "true",
+    "access-control-allow-methods": [
+      "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"
+    ]
+  }
+}

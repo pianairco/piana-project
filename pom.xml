@@ -11,6 +11,7 @@
     <modules>
         <module>piana-secure</module>
         <module>piana-webtool</module>
+        <module>piana-sample</module>
     </modules>
 
     <dependencies>

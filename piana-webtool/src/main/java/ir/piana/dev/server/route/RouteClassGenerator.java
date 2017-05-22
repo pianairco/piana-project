@@ -181,14 +181,14 @@ public class RouteClassGenerator {
         if (clr)
             sb.deleteCharAt(sb.length() - 1);
         sb.append(") throws Exception {\n");
-        String resource = routeConfig.getHandler();
+        String handler = routeConfig.getHandler();
         String callMethodName = null;
         String callClassName = null;
-        if(resource != null && !resource.isEmpty()) {
-            callMethodName = resource.substring(
-                    resource.lastIndexOf(".") + 1);
-            callClassName = resource.substring(
-                    0, resource.lastIndexOf("."));
+        if(handler != null && !handler.isEmpty()) {
+            callMethodName = handler.substring(
+                    handler.lastIndexOf(".") + 1);
+            callClassName = handler.substring(
+                    0, handler.lastIndexOf("."));
         }
         if((callClassName == null || callMethodName == null)
                 && !routeConfig.isAsset()) {
@@ -205,7 +205,7 @@ public class RouteClassGenerator {
         }
         sb.append("PianaResponse response = unauthorizedPianaResponse;\n");
         sb.append("Session session = null;\n");
-        if(methodRoleType != RoleType.GUEST)
+        if(methodRoleType != RoleType.NEEDLESS)
             sb.append("session = doAuthorization(httpHeaders);\n"
                     .concat("if(!RoleType.")
                     .concat(methodRoleType.getName())

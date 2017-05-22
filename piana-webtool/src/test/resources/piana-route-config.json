@@ -4,7 +4,7 @@
       "handler": "ir.piana.dev.server.sample.SampleServiceTest.getHelloWorld",
       "path-params": [],
       "query-params": [],
-      "role": "GUEST"
+      "role": "NEEDLESS"
     },
     "GET#name": {
       "handler": "ir.piana.dev.server.sample.SampleServiceTest.getHelloToName",

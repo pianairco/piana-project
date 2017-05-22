@@ -5,8 +5,9 @@ package ir.piana.dev.server.role;
  */
 public enum RoleType {
     ADMIN("ADMIN", (byte)0xFF),
-    USER("USER", (byte)0x03),
-    GUEST("GUEST", (byte)0x01);
+    USER("USER", (byte)0x07),
+    GUEST("GUEST", (byte)0x03),
+    NEEDLESS("NEEDLESS", (byte)0x01);
 
     private String name;
     private byte scheme;
@@ -28,7 +29,7 @@ public enum RoleType {
     public static RoleType getFromName(String name)
             throws Exception {
         if(name == null || name.isEmpty())
-            return GUEST;
+            return NEEDLESS;
         for (RoleType ruleType : RoleType.values()) {
             if(ruleType.name.equalsIgnoreCase(name))
                 return ruleType;
