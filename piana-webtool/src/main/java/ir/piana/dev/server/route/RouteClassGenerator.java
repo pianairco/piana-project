@@ -137,7 +137,6 @@ public class RouteClassGenerator {
             sb.append("@Path(\"".concat(path).concat("\")\n"));
         }
 
-//        sb.append("@Produces(MediaType.APPLICATION_JSON)\n");
         String methodName = getMethodName(methodPattern);
         RoleType methodRoleType = RoleType.ADMIN;
         try {
@@ -151,35 +150,38 @@ public class RouteClassGenerator {
 
         sb.append("public Response ".concat(methodName)
                 .concat("(@Context HttpHeaders httpHeaders,"));
-        boolean clr = true;
-        List<String> params = new ArrayList<>();
+        boolean isAsset = routeConfig.isAsset();
+
+        List<String> methodParams = new ArrayList<>();
         if(routeConfig.getPathParams() != null) {
+            if(isAsset &&
+                    routeConfig.getPathParams().size() != 0 &&
+                    routeConfig.getPathParams().size() != 1) {
+                throw new Exception("this asset path not set corrected!");
+            }
             for(String pathParam :
                     routeConfig.getPathParams()) {
-                String pParam = pathParam;
+                String pathParamName = pathParam;
                 if(pathParam.contains(":"))
-                    pParam = pathParam.substring(0,
+                    pathParamName = pathParam.substring(0,
                             pathParam.indexOf(":"));
-                params.add(pathParam);
+                methodParams.add(pathParamName);
                 sb.append("@PathParam(\""
-                        .concat(pParam)
+                        .concat(pathParamName)
                         .concat("\") String ")
-                        .concat(pParam.concat(",")));
-                clr = true;
+                        .concat(pathParamName.concat(",")));
             }
         }
         if(routeConfig.getQueryParams() != null) {
             for(String queryParam :
                     routeConfig.getQueryParams()) {
-                params.add(queryParam);
+                methodParams.add(queryParam);
                 sb.append("@QueryParam(\"".concat(queryParam)
                         .concat("\") String ")
                         .concat(queryParam).concat(","));
-                clr = true;
             }
         }
-        if (clr)
-            sb.deleteCharAt(sb.length() - 1);
+        sb.deleteCharAt(sb.length() - 1);
         sb.append(") throws Exception {\n");
         String handler = routeConfig.getHandler();
         String callMethodName = null;
@@ -196,26 +198,35 @@ public class RouteClassGenerator {
         }
 
         String paramListStr = "";
-        Class<?>[] paramList = new Class<?>[params.size() + 1];
+        Class<?>[] paramList = new Class<?>[methodParams.size() + 1];
         int i = 0;
         paramList[i++] = Session.class;
-        for(String p : params) {
+        for(String p : methodParams) {
             paramListStr = paramListStr.concat("String.class,");
             paramList[i++] = String.class;
         }
         sb.append("PianaResponse response = unauthorizedPianaResponse;\n");
         sb.append("Session session = null;\n");
-        if(methodRoleType != RoleType.NEEDLESS)
+
+        if(isAsset && !methodParams.isEmpty()) {
+            sb.append("if(!isAssetExist(\""
+                    .concat(routeConfig.getAssetPath())
+                    .concat("\",")
+                    .concat(methodParams.get(0))
+                    .concat(")) {\n")
+                    .concat("return createResponse(notFoundResponse(), null);\n")
+                    .concat("}\n"));
+        }
+        if (methodRoleType != RoleType.NEEDLESS) {
             sb.append("session = doAuthorization(httpHeaders);\n"
                     .concat("if(!RoleType.")
                     .concat(methodRoleType.getName())
                     .concat(".isValid(session.getRoleType()))\n")
                     .concat("return createResponse(response, session);\n"));
-        else
+        } else
             sb.append("session = doRevivalSession(httpHeaders);\n");
 
         sb.append("try {\n");
-        boolean isAsset = routeConfig.isAsset();
         if(isAsset)
             sb.append("PianaAssetResolver assetResolver = "
                             .concat("registerAssetResolver(\"")
@@ -253,12 +264,8 @@ public class RouteClassGenerator {
             sb.append("response = invokeMethod(m, session, assetResolver,");
         else
             sb.append("response = invokeMethod(m, session,");
-        for (String p : params) {
-            if(p.contains(":"))
-                sb.append(p.substring(0,
-                        p.indexOf(":")).concat(","));
-            else
-                sb.append(p.concat(","));
+        for (String methodParam : methodParams) {
+            sb.append(methodParam.concat(","));
         }
         sb.deleteCharAt(sb.length() - 1);
         String excName = "exc_".concat(getRandomName(16));

@@ -6,7 +6,7 @@
   },
   "/css": {
     "GET#file": {
-      "path-params": ["file"],
+      "path-params": ["file:.*"],
       "asset-path": "./piana-sample/asset-dir/css"
     }
   },

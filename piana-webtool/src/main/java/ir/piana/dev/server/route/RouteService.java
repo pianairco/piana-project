@@ -10,6 +10,10 @@ import org.apache.log4j.Logger;
 import javax.annotation.PostConstruct;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -17,7 +21,7 @@ import java.util.Map;
 /**
  * @author Mohammad Rahmati, 5/3/2017 7:28 AM
  */
-public class RouteService {
+class RouteService {
     protected Logger logger = Logger
             .getLogger(RouteService.class);
     @Context
@@ -114,5 +118,18 @@ public class RouteService {
         if(sessionCookie != null)
             resBuilder.cookie(sessionCookie);
         return resBuilder.build();
+    }
+
+    protected PianaResponse notFoundResponse() {
+        return new PianaResponse(
+                Status.NOT_FOUND,
+                "not found asset",
+                MediaType.TEXT_PLAIN);
+    }
+
+    protected boolean isAssetExist(String rootPath,
+                                   String relativePath) {
+        File file = new File(rootPath, relativePath);
+        return file.exists();
     }
 }

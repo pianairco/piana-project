@@ -60,10 +60,10 @@ public class PianaAssetResolver implements Runnable {
     }
 
     public static PianaAssetResolver getInstance(
-            String publicPath) {
+            String rootPath) {
         try {
             lock.tryLock(100, TimeUnit.MILLISECONDS);
-            Path path = Paths.get(publicPath);
+            Path path = Paths.get(rootPath);
             if(Files.exists(path)) {
                 return new PianaAssetResolver(path);
             } else {
@@ -125,13 +125,12 @@ public class PianaAssetResolver implements Runnable {
         });
     }
 
-    private PianaAsset reload(String path) {
+    private PianaAsset reload(String path)
+            throws Exception {
         PianaAsset pianaAsset = null;
-        FileInputStream fileInputStream = null;
-        File file = null;
-        try {
-            file = new File(rootPath.toString(), path);
-            fileInputStream = new FileInputStream(file);
+        File file = new File(rootPath.toString(), path);
+        try (FileInputStream fileInputStream =
+                     new FileInputStream(file)) {
             int available = fileInputStream.available();
             String mediaType = Files
                     .probeContentType(file.toPath());
@@ -144,25 +143,19 @@ public class PianaAssetResolver implements Runnable {
                 pianaAsset = new PianaAsset(bytes,
                         rootPath.toString(),
                         path, mediaType);
-                assetsMap.put(pianaAsset.getPath().toString(), pianaAsset);
+                assetsMap.put(pianaAsset.getPath().toString(),
+                        pianaAsset);
             }
             logger.info("load asset");
-        } catch (FileNotFoundException e) {
-            return catchException(e);
-        } catch (IOException e) {
-            return catchException(e);
-        } finally {
-            if(fileInputStream != null)
-                try {
-                    fileInputStream.close();
-                } catch (IOException e) {
-                    return catchException(e);
-                }
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new Exception("asset not found");
         }
         return pianaAsset;
     }
 
-    public PianaAsset resolve(String path) {
+    public PianaAsset resolve(String path)
+            throws Exception {
         if(path == null)
             return null;
         PianaAsset pianaAsset = assetsMap.get(path);
@@ -173,9 +166,4 @@ public class PianaAssetResolver implements Runnable {
         return pianaAsset;
     }
 
-    private PianaAsset catchException(Exception ex) {
-        logger.error(ex);
-        return new PianaAsset(null, rootPath.toString(),
-                "not-found.txt", MediaType.TEXT_PLAIN);
-    }
 }
