@@ -1,31 +1,35 @@
 package ir.piana.dev.server.session;
 
-import com.sun.org.apache.bcel.internal.generic.RET;
 import ir.piana.dev.secure.crypto.CryptoAttribute;
 import ir.piana.dev.secure.crypto.CryptoMaker;
 import ir.piana.dev.server.role.RoleType;
 
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.NewCookie;
 import java.security.KeyPair;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Mohammad Rahmati, 4/18/2017 4:30 PM
  */
 public class Session {
+    private String sessionName;
     private KeyPair keyPair;
     private RoleType roleType;
     private String sessionKey;
     private Map<String, String> sessionMap;
 
-    Session(KeyPair keyPair,
+    Session(String sessionName,
+            KeyPair keyPair,
             RoleType roleType) {
-        this(keyPair, roleType, null);
+        this(sessionName, keyPair, roleType, null);
     }
 
-    Session(KeyPair keyPair,
+    Session(String sessionName,
+            KeyPair keyPair,
             RoleType roleType,
             String sessionKey) {
+        this.sessionName = sessionName;
         this.keyPair = keyPair;
         this.roleType = roleType;
         this.sessionKey = sessionKey;

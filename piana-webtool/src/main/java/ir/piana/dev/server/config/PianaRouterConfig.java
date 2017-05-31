@@ -29,7 +29,7 @@ public class PianaRouterConfig
             String route) {
         if (route == null || route.isEmpty())
             route = new String("/");
-        if (getShbConfig(route) == null)
+        if (getPianaConfig(route) == null)
             return null;
         Map<String, Object> configMap = getMap(route);
         if (configMap != null)
@@ -41,7 +41,7 @@ public class PianaRouterConfig
             String route, String method) {
         if (route == null || route.isEmpty())
             route = new String("/");
-        if (getShbConfig(route) == null)
+        if (getPianaConfig(route) == null)
             return null;
         Map<String, Object> configMap = getMap(route);
         if (configMap.containsKey(method)) {

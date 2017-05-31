@@ -9,6 +9,9 @@ import ir.piana.dev.server.role.RoleType;
 import org.apache.log4j.Logger;
 
 import javax.ws.rs.core.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -49,7 +52,7 @@ public class SessionManager {
                     cookie.getValue().isEmpty())
                 return null;
             session = (Session) cacheProvider
-                    .retrieve(cookie.getValue());
+                    .retrieveIfExist(cookie.getValue());
         } catch (Exception e) {
             logger.info(e.getMessage());
         }
@@ -81,7 +84,23 @@ public class SessionManager {
         return session;
     }
 
-    public NewCookie registerCookie(
+    public List<NewCookie> clearOtherCookies(
+            Session session,
+            HttpHeaders httpHeaders) {
+        Map<String, Cookie> cookieMap =
+                httpHeaders.getCookies();
+        List<NewCookie> cookies = new ArrayList<>();
+        cookieMap.forEach((cKey, cValue) -> {
+            if(!cKey.equalsIgnoreCase(
+                    sessionConfig.getSessionName())) {
+                cookies.add(new NewCookie(
+                        cKey, "", "/", "", "", 0, false));
+            }
+        });
+        return cookies;
+    }
+
+    public NewCookie makeSessionCookie(
             Session session) {
         if(session == null) {
             logger.info("session is null.");
@@ -92,6 +111,21 @@ public class SessionManager {
                 session.getSessionKey(), "/", "", null,
                 sessionConfig.getSessionExpireSecond(),
                 false, false);
+    }
+
+    public NewCookie[] removeOtherCookies(
+            Session session, HttpHeaders httpHeaders) {
+        NewCookie[] cookies = null;
+        List<NewCookie> newCookieList =
+                clearOtherCookies(session, httpHeaders);
+        if(newCookieList != null)
+            cookies = new NewCookie[1 + newCookieList.size()];
+        else
+            return new NewCookie[] {makeSessionCookie(session)};
+            cookies[0] = makeSessionCookie(session);
+        for(int i = 1; i < cookies.length; i++)
+            cookies[i] = newCookieList.get(i - 1);
+        return cookies;
     }
 
     private static Session createNewSession()

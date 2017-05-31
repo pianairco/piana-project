@@ -3,10 +3,8 @@ package ir.piana.dev.server.asset;
 import org.apache.log4j.Logger;
 
 import javax.activation.MimetypesFileTypeMap;
-import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;

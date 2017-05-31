@@ -19,7 +19,7 @@ public class PianaConfig {
         if(configMap == null)
             return null;
         Object o = configMap.get(key);
-        if(o instanceof String)
+        if(o != null && o instanceof String)
             return (String)o;
         return null;
     }
@@ -42,7 +42,7 @@ public class PianaConfig {
         return null;
     }
 
-    protected PianaConfig getShbConfig(String key) {
+    protected PianaConfig getPianaConfig(String key) {
         if(configMap == null)
             return null;
         Object o = configMap.get(key);

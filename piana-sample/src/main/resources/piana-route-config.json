@@ -2,11 +2,16 @@
   "/": {
     "GET": {
       "asset-path": "./piana-sample/asset-dir"
+    },
+    "GET#file": {
+      "path-params": ["file:.*"],
+      "asset-path": "./piana-sample/asset-dir"
     }
   },
   "/css": {
     "GET#file": {
       "path-params": ["file:.*"],
+      "role": "GUEST",
       "asset-path": "./piana-sample/asset-dir/css"
     }
   },

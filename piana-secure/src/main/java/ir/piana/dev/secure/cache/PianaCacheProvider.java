@@ -51,6 +51,14 @@ public class PianaCacheProvider<K, V> {
         return loadingCache.get(key);
     }
 
+    public V retrieveIfExist(K key)
+            throws Exception {
+        if(key == null)
+            throw new Exception(
+                    "key is null or empty.");
+        return loadingCache.getIfPresent(key);
+    }
+
     public V remove(K key)
             throws Exception {
         if(key == null)

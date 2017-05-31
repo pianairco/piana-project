@@ -28,7 +28,8 @@ public class RouteClassGenerator {
             "ir.piana.dev.server.route";
 
     public static Set<Class<?>> generateRouteClasses(
-            PianaRouterConfig routerConfig)
+            PianaRouterConfig routerConfig,
+            String outputClassPath)
             throws Exception {
         Set<String> routes = routerConfig.getRoutes();
         Set<Class<?>> classes = new HashSet<>();
@@ -45,7 +46,25 @@ public class RouteClassGenerator {
             StringBuilder classSource = createClassSource(
                     routerConfig, route, className);
 
-            writeClassToFile(className, classSource);
+            if(outputClassPath != null && !outputClassPath.isEmpty()) {
+
+                File directory = new File(outputClassPath);
+                try {
+                    if (!directory.exists()) {
+                        /**
+                         * If you require it to make the
+                         * entire directory path including parents
+                         * use of directory.mkdirs();
+                         * else, use of directory.mkdir();*/
+                        directory.mkdirs();
+                    }
+                    writeClassToFile(directory.getPath(),
+                            className, classSource);
+                } catch (Exception e) {
+                    logger.error("not can make class file " +
+                            "in determined path");
+                }
+            }
 
             classes.add(registerClass(
                     fullClassName, classSource));
@@ -86,10 +105,15 @@ public class RouteClassGenerator {
     }
 
     static void writeClassToFile(
+            String outputClassPath,
             String className,
             StringBuilder classSource)
-            throws IOException {
-        File f = new File("d:/classes/"
+            throws Exception {
+        if(outputClassPath == null ||
+                outputClassPath.isEmpty())
+            throw new Exception(
+                    "output class path is null");
+        File f = new File(outputClassPath.concat("/")
                 .concat(className)
                 .concat(".txt"));
         FileOutputStream fos = new FileOutputStream(f);
@@ -214,7 +238,7 @@ public class RouteClassGenerator {
                     .concat("\",")
                     .concat(methodParams.get(0))
                     .concat(")) {\n")
-                    .concat("return createResponse(notFoundResponse(), null);\n")
+                    .concat("return createResponse(notFoundResponse(), null, httpHeaders);\n")
                     .concat("}\n"));
         }
         if (methodRoleType != RoleType.NEEDLESS) {
@@ -222,7 +246,7 @@ public class RouteClassGenerator {
                     .concat("if(!RoleType.")
                     .concat(methodRoleType.getName())
                     .concat(".isValid(session.getRoleType()))\n")
-                    .concat("return createResponse(response, session);\n"));
+                    .concat("return createResponse(response, session, httpHeaders);\n"));
         } else
             sb.append("session = doRevivalSession(httpHeaders);\n");
 
@@ -273,7 +297,7 @@ public class RouteClassGenerator {
         sb.append("System.out.println(".concat(excName).concat(".getMessage());\n"));
         sb.append("logger.error(".concat(excName).concat(");\n"));
         sb.append("response = internalServerErrorPianaResponse;\n}\n");
-        sb.append("return createResponse(response, session);\n");
+        sb.append("return createResponse(response, session, httpHeaders);\n");
         sb.append("}\n");
     }
 

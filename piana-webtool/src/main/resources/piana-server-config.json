@@ -5,7 +5,8 @@
   "http-base-route": "",
   "rest-filters": [
   ],
-  "output-class-path": "d:/classes",
+  "output-class-path": "",
+  "remove-other-cookies": "true",
   "session":{
     "session-name": "PIANA_SESSION",
     "session-cache-size": "500",
@@ -13,7 +14,6 @@
   },
   "cors": {
     "access-control-allow-origin": [
-      "http://localhost:3000"
     ],
     "access-control-allow-headers": [
       "origin", "content-type", "accept", "authorization"

@@ -11,9 +11,6 @@ import javax.annotation.PostConstruct;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -103,9 +100,11 @@ class RouteService {
     }
 
     protected Response createResponse(
-            PianaResponse pianaResponse, Session session) {
-        NewCookie sessionCookie = sessionManager
-                .registerCookie(session);
+            PianaResponse pianaResponse,
+            Session session,
+            HttpHeaders httpHeaders) {
+//        NewCookie sessionCookie = sessionManager
+//                .makeSessionCookie(session);
         Response.ResponseBuilder resBuilder = Response
                 .status(
                         pianaResponse.getResponseStatus())
@@ -113,10 +112,16 @@ class RouteService {
                 .header("Content-Type",
                         pianaResponse.getMediaType()
                                 .concat("; charset=")
-                                .concat(pianaResponse.getCharset()
+                                .concat(pianaResponse
+                                        .getCharset()
                                         .displayName()));
-        if(sessionCookie != null)
-            resBuilder.cookie(sessionCookie);
+        if(serverConfig.isRemoveOtherCookies())
+            resBuilder.cookie(sessionManager
+                    .removeOtherCookies(
+                            session, httpHeaders));
+        else
+            resBuilder.cookie(sessionManager
+                    .makeSessionCookie(session));
         return resBuilder.build();
     }
 

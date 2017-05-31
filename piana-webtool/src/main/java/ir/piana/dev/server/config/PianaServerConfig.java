@@ -31,6 +31,10 @@ public class PianaServerConfig
             = "cors";
     public static final String REST_FILTERS
             = "rest-filters";
+    public static final String OUTPUT_CLASS_PATH
+            = "output-class-path";
+    public static final String REMOVE_OTHER_COOKIES
+            = "remove-other-cookies";
 
     public HttpServerType getServerType() {
         if(configMap == null)
@@ -54,15 +58,26 @@ public class PianaServerConfig
     public PianaSessionConfig getSessionConfig() {
         PianaSessionConfig sessionConfig =
                 new PianaSessionConfig();
-        sessionConfig.reconfigure(getShbConfig(SESSION_CONFIG));
+        sessionConfig.reconfigure(getPianaConfig(SESSION_CONFIG));
         return sessionConfig;
     }
 
     public PianaCORSConfig getCORSConfig() {
         PianaCORSConfig corsConfig =
                 new PianaCORSConfig();
-        corsConfig.reconfigure(getShbConfig(CORS_CONFIG));
+        corsConfig.reconfigure(getPianaConfig(CORS_CONFIG));
         return corsConfig;
+    }
+
+    public String getOutputClassPath() {
+        return getString(OUTPUT_CLASS_PATH);
+    }
+
+    public boolean isRemoveOtherCookies() {
+        if(getString(REMOVE_OTHER_COOKIES) == null
+                || getString(REMOVE_OTHER_COOKIES).isEmpty())
+            return false;
+        return Boolean.getBoolean(getString(REMOVE_OTHER_COOKIES));
     }
 
     public URI getBaseUri() {
