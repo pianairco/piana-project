@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * @author Mohammad Rahmati, 5/3/2017 7:28 AM
  */
-class RouteService {
+public class RouteService {
     protected Logger logger = Logger
             .getLogger(RouteService.class);
     @Context

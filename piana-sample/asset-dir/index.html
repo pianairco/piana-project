@@ -3,7 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Piana Sample</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <link rel="stylesheet" type="text/css" href="css/main/main.css">
+    <script>
+        $(document).ready(function() {
+            var userModel = {"userName": "ali", "userPass":"123"};
+            $.ajax({
+                type: "POST",
+                url: "http://localhost:8001/auth",
+                data: JSON.stringify(userModel),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(data){
+                    console.log(data);
+                },
+                failure: function(errMsg) {
+                    console.log(errMsg);
+                }
+            });
+        });
+</script>
 </head>
 <body>
 <h1>Well come to piana sample</h1>

@@ -62,6 +62,8 @@ public class PianaRouterConfig
                 = "path-params";
         public static final String QUERY_PARAMS_CONFIG
                 = "query-params";
+        public static final String BODY_JSON_OBJECT_CONFIG
+                = "body-json-object";
         public static final String ROLE_CONFIG
                 = "role";
         public static final String ASSET_PATH_CONFIG
@@ -77,6 +79,10 @@ public class PianaRouterConfig
 
         public List<String> getQueryParams() {
             return getList(QUERY_PARAMS_CONFIG);
+        }
+
+        public String getBodyJsonObject() {
+            return getString(BODY_JSON_OBJECT_CONFIG);
         }
 
         public String getRole() {

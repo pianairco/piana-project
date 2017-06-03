@@ -8,11 +8,13 @@
       "asset-path": "./piana-sample/asset-dir"
     }
   },
-  "/css": {
-    "GET#file": {
-      "path-params": ["file:.*"],
-      "role": "GUEST",
-      "asset-path": "./piana-sample/asset-dir/css"
+  "/auth": {
+    "POST": {
+      "handler": "ir.piana.dev.sample.rest.AuthRest.postUser",
+      "path-params": [],
+      "query-params": [],
+      "body-json-object": "ir.piana.dev.sample.model.UserModel",
+      "role": "GUEST"
     }
   },
   "/hello-world": {

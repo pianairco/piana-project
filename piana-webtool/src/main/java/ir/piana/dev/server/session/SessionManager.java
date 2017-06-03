@@ -30,7 +30,7 @@ public class SessionManager {
         this.sessionConfig = sessionConfig;
         cacheProvider =
                 PianaCacheProvider.getInstance(
-                        key -> createNewSession(),
+                        key -> createNewSession(sessionConfig),
                         sessionConfig.getSessionCacheSize(),
                         sessionConfig.getSessionExpireSecond());
     }
@@ -128,9 +128,11 @@ public class SessionManager {
         return cookies;
     }
 
-    private static Session createNewSession()
+    private static Session createNewSession(
+            PianaSessionConfig sessionConfig)
             throws PianaSecureException {
         return new Session(
+                sessionConfig.getSessionName(),
                 KeyPairMaker.createKeyPair(
                         KeyPairAlgorithm.RSA_1024),
                 RoleType.GUEST

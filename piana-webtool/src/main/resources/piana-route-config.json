@@ -3,5 +3,14 @@
     "GET": {
       "asset-path": "./piana-webtool/src/main/java/resources"
     }
+  },
+  "/sign-in": {
+    "POST": {
+      "handler": "ir.piana.dev.sample.rest.HelloWorldRest.getHelloWorld",
+      "path-params": [],
+      "query-params": [],
+      "body-json-object": "",
+      "role": "GUEST"
+    }
   }
 }

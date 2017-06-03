@@ -13,7 +13,7 @@
   },
   "cors": {
     "access-control-allow-origin": [
-      "http://localhost:3000"
+      "http://localhost:8001"
     ],
     "access-control-allow-headers": [
       "origin", "content-type", "accept", "authorization"

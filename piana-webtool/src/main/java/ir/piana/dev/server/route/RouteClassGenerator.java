@@ -158,7 +158,25 @@ public class RouteClassGenerator {
                 path = path.concat("/{")
                         .concat(pathParam).concat("}");
             }
-            sb.append("@Path(\"".concat(path).concat("\")\n"));
+            sb.append("@Path(\""
+                    .concat(path)
+                    .concat("\")\n"));
+        }
+        String bodyJsonObject =
+                routeConfig.getBodyJsonObject();
+        String bodyJsonObjectName = null;
+        if(bodyJsonObject != null &&
+                !bodyJsonObject.isEmpty()) {
+            if(httpMethod.equalsIgnoreCase("GET") ||
+                    httpMethod.equalsIgnoreCase("HEAD") ||
+                    httpMethod.equalsIgnoreCase("DELETE") ||
+                    httpMethod.equalsIgnoreCase("TRACE") ||
+                    httpMethod.equalsIgnoreCase("OPTIONS") ||
+                    httpMethod.equalsIgnoreCase("CONNECT"))
+                throw new Exception("http method don't support body");
+            sb.append("@Consumes(MediaType.APPLICATION_JSON)\n");
+            bodyJsonObjectName = bodyJsonObject.substring(
+                    bodyJsonObject.lastIndexOf(".") + 1);
         }
 
         String methodName = getMethodName(methodPattern);
@@ -205,6 +223,14 @@ public class RouteClassGenerator {
                         .concat(queryParam).concat(","));
             }
         }
+
+        if(bodyJsonObject != null &&
+                !bodyJsonObject.isEmpty()) {
+            sb.append(bodyJsonObject
+                    .concat(" ")
+                    .concat(bodyJsonObjectName)
+                    .concat(","));
+        }
         sb.deleteCharAt(sb.length() - 1);
         sb.append(") throws Exception {\n");
         String handler = routeConfig.getHandler();
@@ -222,12 +248,22 @@ public class RouteClassGenerator {
         }
 
         String paramListStr = "";
-        Class<?>[] paramList = new Class<?>[methodParams.size() + 1];
+        Class<?>[] paramList = null;
+        if(bodyJsonObject != null &&
+                !bodyJsonObject.isEmpty())
+            paramList = new Class<?>[methodParams.size() + 2];
+        else
+            paramList = new Class<?>[methodParams.size() + 1];
         int i = 0;
         paramList[i++] = Session.class;
         for(String p : methodParams) {
             paramListStr = paramListStr.concat("String.class,");
             paramList[i++] = String.class;
+        }
+        if(bodyJsonObject != null &&
+                !bodyJsonObject.isEmpty()) {
+            paramListStr = paramListStr.concat(bodyJsonObject).concat(".class,");
+            paramList[i++] = Class.forName(bodyJsonObject);
         }
         sb.append("PianaResponse response = unauthorizedPianaResponse;\n");
         sb.append("Session session = null;\n");
@@ -290,6 +326,10 @@ public class RouteClassGenerator {
             sb.append("response = invokeMethod(m, session,");
         for (String methodParam : methodParams) {
             sb.append(methodParam.concat(","));
+        }
+        if(bodyJsonObject != null &&
+                !bodyJsonObject.isEmpty()) {
+            sb.append(bodyJsonObjectName.concat(","));
         }
         sb.deleteCharAt(sb.length() - 1);
         String excName = "exc_".concat(getRandomName(16));
