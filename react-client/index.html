@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>React Example</title>
+    <!--<script src="https://unpkg.com/react@latest/dist/react.js"></script>-->
+    <link href="libs/foundation/css/foundation.min.css" />
+    <script src="libs/foundation/js/vendor/jquery.js"></script>
+    <script src="libs/foundation/js/vendor/foundation.min.js"></script>
+    <script src="libs/react/react.min.js"></script>
+    <script src="libs/react/react-dom.min.js"></script>
+    <script src="libs/babel/babel.min.js" charset="utf-8"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+    class HelloWorld {
+        user = {
+            firstName: 'Harper',
+            lastName: 'Perez'
+        };
+
+        formatName(user) {
+            return user.firstName + ' ' + user.lastName;
+        }
+
+        render(elem) {
+            ReactDOM.render(
+                    <h1>
+                        Hello, world! {
+                        this.formatName(this.user)
+                        }!
+                    </h1>,
+                    elem
+            );
+        }
+    }
+    $(document).ready(function () {
+        var self = $("#root");
+        let h = new HelloWorld();
+        h.render(self[0]);
+    })
+
+</script>
+</body>
+</html>

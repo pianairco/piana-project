@@ -1,10 +1,12 @@
 {
   "/": {
     "GET": {
-      "asset-path": "./piana-sample/asset-dir"
+      "asset-path": "./react-client",
+      "asset-path-fake": "./piana-sample/asset-dir"
     },
     "GET#file": {
-      "asset-path": "./piana-sample/asset-dir",
+      "asset-path": "./react-client",
+      "asset-path-fake": "./piana-sample/asset-dir",
       "path-params": ["file:.*"]
     }
   },

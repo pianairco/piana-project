@@ -7,6 +7,7 @@ import ir.piana.dev.server.session.Session;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
+import java.nio.charset.Charset;
 
 /**
  * @author Mohammad Rahmati, 5/10/2017 8:46 PM
@@ -44,7 +45,8 @@ class AssetService {
         return new PianaResponse(
                 Status.OK,
                 asset.getBytes(),
-                asset.getMediaType());
+                asset.getMediaType(),
+                Charset.forName("UTF-8"));
     }
 
     protected static PianaResponse notFoundResponse() {
