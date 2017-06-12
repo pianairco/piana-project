@@ -26,7 +26,7 @@
 
         render(elem) {
             ReactDOM.render(
-                    <h1>
+                    <h1 style={{backgroundColor:'aqua'}}>
                         Hello, world! {
                         this.formatName(this.user)
                         }!
@@ -37,6 +37,13 @@
     }
     $(document).ready(function () {
         var self = $("#root");
+        const element = React.createElement(
+                'h1',
+                {className: 'greeting'},
+                'Hello, world!'
+        );
+        console.log(element)
+
         let h = new HelloWorld();
         h.render(self[0]);
     })
