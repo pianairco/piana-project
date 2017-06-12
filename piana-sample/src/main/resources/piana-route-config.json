@@ -4,8 +4,8 @@
       "asset-path": "./piana-sample/asset-dir"
     },
     "GET#file": {
-      "path-params": ["file:.*"],
-      "asset-path": "./piana-sample/asset-dir"
+      "asset-path": "./piana-sample/asset-dir",
+      "path-params": ["file:.*"]
     }
   },
   "/auth": {
