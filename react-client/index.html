@@ -10,44 +10,172 @@
     <script src="libs/react/react.min.js"></script>
     <script src="libs/react/react-dom.min.js"></script>
     <script src="libs/babel/babel.min.js" charset="utf-8"></script>
+
+    <script type="text/babel">
+        class HelloWorld {
+            constructor() {
+            }
+
+            user = {
+                firstName: 'Harper',
+                lastName: 'Perez'
+            };
+
+            formatName(user) {
+                return user.firstName + ' ' + user.lastName;
+            }
+
+            render() {
+                ReactDOM.render(
+                        <h1 style={{backgroundColor:'aqua'}}>
+                            Hello, world! {
+                            this.formatName(this.user)
+                        }!
+                        </h1>,
+                        document.getElementById('root')
+                );
+            }
+
+            renderTime() {
+                console.log("renderTime");
+                let element = (
+                        <div>
+                            <h2>It is {new Date().toLocaleTimeString()}.</h2>
+                        </div>
+                );
+                ReactDOM.render(
+                        element,
+                        document.getElementById('root')
+                );
+            }
+
+            tick () {
+                setInterval(this.renderTime, 1000);
+            }
+        }
+
+        $(document).ready(function () {
+            var self = $("#root");
+
+            let h = new HelloWorld();
+            h.tick();
+        });
+
+        function Welcome(props) {
+            return <h1>Hello, {props.name}</h1>;
+        }
+
+        function App() {
+            return (
+                    <div>
+                        <Welcome name="Sara" />
+                        <Welcome name="Cahal" />
+                        <Welcome name="Edite" />
+                    </div>
+            );
+        }
+
+        function Comment(props) {
+            return (
+                    <div className="Comment">
+                        <div className="UserInfo">
+                            <img className="Avatar"
+                                 src={props.author.avatarUrl}
+                                 alt={props.author.name}
+                            />
+                            <div className="UserInfo-name">
+                                {props.author.name}
+                            </div>
+                        </div>
+                        <div className="Comment-text">
+                            {props.text}
+                        </div>
+                        <div className="Comment-date">
+                            {formatDate(props.date)}
+                        </div>
+                    </div>
+            );
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString();
+        }
+
+        const comment = {
+            date: new Date(),
+            text: 'I hope you enjoy learning React!',
+            author: {
+                name: 'Hello Kitty',
+                avatarUrl: 'http://placekitten.com/g/64/64'
+            }
+        };
+
+        const element = <Comment date={comment.date}
+                                 text={comment.text}
+                                 author={comment.author} />;
+
+        class Clock extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = {date: new Date(),
+                    isToggleOn: true};
+                this.handleClick = this.handleClick.bind(this);
+            }
+
+            componentDidMount () {
+                this.timerID = setInterval(
+                        () => this.tick(),
+                        1000
+                );
+            }
+
+            componentWillUnmount () {
+                clearInterval(this.timerID);
+            }
+
+            tick() {
+                this.setState({
+                    date: new Date()
+                });
+            }
+
+            handleClick (e) {
+                e.preventDefault();
+                console.log(e);
+                this.setState(prevState => ({
+                    isToggleOn: !prevState.isToggleOn
+                }));
+            }
+
+            render() {
+                return (
+                        <div onClick={this.handleClick}>
+                            <h1>Clock!</h1>
+                            <h2>It is {this.state.date.toLocaleTimeString()}.</h2>
+                            <button onClick={this.handleClick}>
+                                {this.state.isToggleOn ? 'ON' : 'OFF'}
+                            </button>
+                        </div>
+                );
+            }
+        }
+
+        ReactDOM.render(
+                <Clock />,
+                document.getElementById('root2')
+        );
+
+        setInterval(() => {
+            ReactDOM.render(
+                    <App />,
+                    document.getElementById('root2')
+            );
+        }, 10000)
+    </script>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
-    class HelloWorld {
-        user = {
-            firstName: 'Harper',
-            lastName: 'Perez'
-        };
+<div id="root2"></div>
 
-        formatName(user) {
-            return user.firstName + ' ' + user.lastName;
-        }
-
-        render(elem) {
-            ReactDOM.render(
-                    <h1 style={{backgroundColor:'aqua'}}>
-                        Hello, world! {
-                        this.formatName(this.user)
-                        }!
-                    </h1>,
-                    elem
-            );
-        }
-    }
-    $(document).ready(function () {
-        var self = $("#root");
-        const element = React.createElement(
-                'h1',
-                {className: 'greeting'},
-                'Hello, world!'
-        );
-        console.log(element)
-
-        let h = new HelloWorld();
-        h.render(self[0]);
-    })
-
-</script>
 </body>
 </html>
