@@ -25,7 +25,7 @@ public class PianaRouterConfig
         return configMap.keySet();
     }
 
-    public Set<String> getHttpMethods(
+    public Set<String> getHttpMethodPatterns(
             String route) {
         if (route == null || route.isEmpty())
             route = new String("/");

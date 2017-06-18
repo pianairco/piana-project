@@ -4,6 +4,7 @@ import ir.piana.dev.secure.random.SecureRandomMaker;
 import ir.piana.dev.secure.random.SecureRandomType;
 import ir.piana.dev.secure.util.HexConverter;
 import ir.piana.dev.server.config.PianaRouterConfig;
+import ir.piana.dev.server.config.PianaRouterConfig.PianaRouteConfig;
 import ir.piana.dev.server.role.RoleType;
 import ir.piana.dev.server.session.Session;
 import org.apache.log4j.Logger;
@@ -21,9 +22,9 @@ import static javax.tools.JavaFileObject.Kind.SOURCE;
 /**
  * @author Mohammad Rahmati, 5/7/2017 5:20 PM
  */
-public class RouteClassGenerator {
+public class RouteClassGeneratorEx {
     final static Logger logger =
-            Logger.getLogger(RouteClassGenerator.class);
+            Logger.getLogger(RouteClassGeneratorEx.class);
     private static final String packageName =
             "ir.piana.dev.server.route";
 
@@ -33,9 +34,7 @@ public class RouteClassGenerator {
             throws Exception {
         Set<String> routes = routerConfig.getRoutes();
         Set<Class<?>> classes = new HashSet<>();
-        /**
-         * setRoot = "/" default for index.html
-         */
+
         boolean setRoot = false;
         for(String route : routes) {
             final String className = getClassName(route);
@@ -81,22 +80,18 @@ public class RouteClassGenerator {
     ) throws Exception {
         StringBuilder sb = initializeRouteClass(
                 route, className);
-        Set<String> httpMethods =
+        Set<String> httpMethodPatterns =
                 routerConfig.getHttpMethodPatterns(route);
-        if(httpMethods != null) {
-            for(String httpMethod : httpMethods) {
-                String fixHttpMethod = httpMethod;
-                if(httpMethod.contains("#"))
-                    fixHttpMethod = httpMethod.substring(
-                            0, httpMethod.indexOf("#"));
-                PianaRouterConfig.PianaRouteConfig routeConfig =
+        if(httpMethodPatterns != null) {
+            for(String httpMethodPattern : httpMethodPatterns) {
+                PianaRouteConfig routeConfig =
                         routerConfig.getRouteConfig(
-                                route, httpMethod);
+                                route, httpMethodPattern);
                 appendRouteMethod(
-                        route.concat(httpMethod),
-                        fixHttpMethod,
-                        httpMethod,
-                        routeConfig, sb);
+                        route.concat(httpMethodPattern),
+                        httpMethodPattern,
+                        routeConfig,
+                        sb);
             }
         }
 
@@ -136,6 +131,8 @@ public class RouteClassGenerator {
         sb.append("import ir.piana.dev.server.response.*;\n");
         sb.append("import ir.piana.dev.server.session.*;\n");
         sb.append("import ir.piana.dev.server.asset.*;\n");
+        sb.append("import java.util.List;\n");
+        sb.append("import java.util.Map;\n");
         sb.append("@Singleton\n");
         sb.append("@Path(\"".concat(route).concat("\")\n"));
         sb.append("public class ".concat(className)
@@ -145,142 +142,72 @@ public class RouteClassGenerator {
 
     static void appendRouteMethod(
             String urlPath,
-            String httpMethod,
             String methodPattern,
-            PianaRouterConfig.PianaRouteConfig routeConfig,
+            PianaRouteConfig routeConfig,
             StringBuilder sb)
             throws Exception {
+
+        //check if is asset must be have 0 or 1 path param
+        boolean isAsset = UtilityClass
+                .checkMethodCorrection(routeConfig);
+
+        String httpMethod = UtilityClass
+                .fetchHttpMethod(methodPattern);
+//        String pathParamStrings = UtilityClass
+//                .fetchPathParamStrings(methodPattern);
+        String[] pathParamList = UtilityClass
+                .fetchPathParamList(methodPattern);
+
+        //@GET or @POST or @DELETE or ...
         sb.append("@".concat(httpMethod).concat("\n"));
-        String path = new String("");
-        if(routeConfig.getPathParams() != null) {
-            for(String pathParam :
-                    routeConfig.getPathParams()) {
-                path = path.concat("/{")
-                        .concat(pathParam).concat("}");
-            }
+
+
+        //@Path({path-param}/{path-param})
+        if(pathParamList != null) {
             sb.append("@Path(\""
-                    .concat(path)
+                    .concat(UtilityClass.createRestPathURL(
+                            pathParamList))
                     .concat("\")\n"));
         }
-        String bodyJsonObject =
-                routeConfig.getBodyJsonObject();
-        String bodyJsonObjectName = null;
-        if(bodyJsonObject != null &&
-                !bodyJsonObject.isEmpty()) {
-            if(httpMethod.equalsIgnoreCase("GET") ||
-                    httpMethod.equalsIgnoreCase("HEAD") ||
-                    httpMethod.equalsIgnoreCase("DELETE") ||
-                    httpMethod.equalsIgnoreCase("TRACE") ||
-                    httpMethod.equalsIgnoreCase("OPTIONS") ||
-                    httpMethod.equalsIgnoreCase("CONNECT"))
-                throw new Exception("http method don't support body");
+
+        //@Consumes(MediaType.*)
+        String consumes = UtilityClass.createConsumes(
+                routeConfig, httpMethod);
+        if(consumes != null) {
             sb.append("@Consumes(MediaType.APPLICATION_JSON)\n");
-            bodyJsonObjectName = bodyJsonObject.substring(
-                    bodyJsonObject.lastIndexOf(".") + 1);
         }
 
-        String methodName = getMethodName(methodPattern);
-        RoleType methodRoleType = RoleType.ADMIN;
+        //add method signature
+        String methodSignature = UtilityClass
+                .createMethodSignature(
+                        methodPattern, routeConfig);
+        if(methodSignature != null)
+            sb.append(methodSignature);
+
+        RoleType routeRoleType = RoleType.ADMIN;
         try {
-            methodRoleType = RoleType
+            routeRoleType = RoleType
                     .getFromName(routeConfig.getRole());
-//            sb.append("@Role(roleType = RoleType."
-//                    .concat(methodRoleType.getName()).concat(")\n"));
         } catch (Exception e) {
             logger.error(e.getMessage());
         }
 
-        sb.append("public Response ".concat(methodName)
-                .concat("(@Context HttpHeaders httpHeaders,"));
-        boolean isAsset = routeConfig.isAsset();
-
-        List<String> methodParams = new ArrayList<>();
-        if(routeConfig.getPathParams() != null) {
-            if(isAsset &&
-                    routeConfig.getPathParams().size() != 0 &&
-                    routeConfig.getPathParams().size() != 1) {
-                throw new Exception("this asset path not set corrected!");
-            }
-            for(String pathParam :
-                    routeConfig.getPathParams()) {
-                String pathParamName = pathParam;
-                if(pathParam.contains(":"))
-                    pathParamName = pathParam.substring(0,
-                            pathParam.indexOf(":"));
-                methodParams.add(pathParamName);
-                sb.append("@PathParam(\""
-                        .concat(pathParamName)
-                        .concat("\") String ")
-                        .concat(pathParamName.concat(",")));
-            }
-        }
-        if(routeConfig.getQueryParams() != null) {
-            for(String queryParam :
-                    routeConfig.getQueryParams()) {
-                methodParams.add(queryParam);
-                sb.append("@QueryParam(\"".concat(queryParam)
-                        .concat("\") String ")
-                        .concat(queryParam).concat(","));
-            }
-        }
-
-        if(bodyJsonObject != null &&
-                !bodyJsonObject.isEmpty()) {
-            sb.append(bodyJsonObject
-                    .concat(" ")
-                    .concat(bodyJsonObjectName)
-                    .concat(","));
-        }
-        sb.deleteCharAt(sb.length() - 1);
-        sb.append(") throws Exception {\n");
-        String handler = routeConfig.getHandler();
-        String callMethodName = null;
-        String callClassName = null;
-        if(handler != null && !handler.isEmpty()) {
-            callMethodName = handler.substring(
-                    handler.lastIndexOf(".") + 1);
-            callClassName = handler.substring(
-                    0, handler.lastIndexOf("."));
-        }
-        if((callClassName == null || callMethodName == null)
-                && !routeConfig.isAsset()) {
-            throw new Exception("handler is incorrect.");
-        }
-
-        String paramListStr = "";
-        Class<?>[] paramList = null;
-        if(bodyJsonObject != null &&
-                !bodyJsonObject.isEmpty())
-            paramList = new Class<?>[methodParams.size() + 2];
-        else
-            paramList = new Class<?>[methodParams.size() + 1];
-        int i = 0;
-        paramList[i++] = Session.class;
-        for(String p : methodParams) {
-            paramListStr = paramListStr.concat("String.class,");
-            paramList[i++] = String.class;
-        }
-        if(bodyJsonObject != null &&
-                !bodyJsonObject.isEmpty()) {
-            paramListStr = paramListStr.concat(bodyJsonObject).concat(".class,");
-            paramList[i++] = Class.forName(bodyJsonObject);
-        }
         sb.append("PianaResponse response = unauthorizedPianaResponse;\n");
         sb.append("Session session = null;\n");
 
-        if(isAsset && !methodParams.isEmpty()) {
+        if(isAsset && pathParamList.length == 1) {
             sb.append("if(!isAssetExist(\""
                     .concat(routeConfig.getAssetPath())
                     .concat("\",")
-                    .concat(methodParams.get(0))
+                    .concat(pathParamList[0])
                     .concat(")) {\n")
                     .concat("return createResponse(notFoundResponse(), null, httpHeaders);\n")
                     .concat("}\n"));
         }
-        if (methodRoleType != RoleType.NEEDLESS) {
+        if (routeRoleType != RoleType.NEEDLESS) {
             sb.append("session = doAuthorization(httpHeaders);\n"
                     .concat("if(!RoleType.")
-                    .concat(methodRoleType.getName())
+                    .concat(routeRoleType.getName())
                     .concat(".isValid(session.getRoleType()))\n")
                     .concat("return createResponse(response, session, httpHeaders);\n"));
         } else
@@ -289,7 +216,7 @@ public class RouteClassGenerator {
         sb.append("try {\n");
         if(isAsset)
             sb.append("PianaAssetResolver assetResolver = "
-                            .concat("registerAssetResolver(\"")
+                    .concat("registerAssetResolver(\"")
                     .concat(urlPath)
                     .concat("\",\"")
                     .concat(routeConfig.getAssetPath())
@@ -297,38 +224,47 @@ public class RouteClassGenerator {
         String registerMethod = "Method m = registerMethod(\""
                 .concat(urlPath)
                 .concat("\",\"");
+
+        String callClassName = UtilityClass
+                .fetchCallClassName(routeConfig);
+        String callMethodName = UtilityClass
+                .fetchCallMethodName(routeConfig);
         if(isAsset)
             if(callClassName == null || callMethodName == null)
                 registerMethod = registerMethod.concat(
-                        "ir.piana.dev.server.route.AssetService")
-                        .concat("\",\"getAsset\",");
+                        "\"ir.piana.dev.server.route.AssetService\",")
+                        .concat("\"getAsset\",");
             else
                 registerMethod = registerMethod.concat(callClassName)
                         .concat("\",\"")
-                        .concat(callMethodName).concat("\",");
+                        .concat(callMethodName)
+                        .concat("\",");
         else
             registerMethod = registerMethod.concat(callClassName)
                     .concat("\",\"")
-                    .concat(callMethodName).concat("\",");
+                    .concat(callMethodName)
+                    .concat("\",");
         registerMethod = registerMethod.concat("Session.class,");
 
         if(isAsset)
             registerMethod = registerMethod
                     .concat("PianaAssetResolver.class,");
-        registerMethod = registerMethod.concat(paramListStr);
+        registerMethod = registerMethod.concat(
+                "Map.class");
         sb.append(registerMethod);
-        sb.deleteCharAt(sb.length() - 1);
         sb.append(");\n");
 
         if(isAsset)
-            sb.append("response = invokeMethod(m, session, assetResolver,");
+            sb.append(
+                    "response = invokeMethod(m, session, assetResolver,");
         else
             sb.append("response = invokeMethod(m, session,");
-        for (String methodParam : methodParams) {
-            sb.append(methodParam.concat(","));
-        }
-        if(bodyJsonObject != null &&
-                !bodyJsonObject.isEmpty()) {
+        sb.append("createParameters(uriInfo),");
+
+        String bodyJsonObjectName = UtilityClass
+                .fetchConsumeObjectName(
+                        routeConfig);
+        if(bodyJsonObjectName != null) {
             sb.append(bodyJsonObjectName.concat(","));
         }
         sb.deleteCharAt(sb.length() - 1);
@@ -365,40 +301,6 @@ public class RouteClassGenerator {
                 .replaceFirst("/", "")
                 .replaceAll("/", "_")
                 .replaceAll("-", "");
-    }
-
-    private static String getMethodName(String methodPattern)
-            throws Exception {
-        if(methodPattern == null)
-            throw new Exception("method pattern is null.");
-        else if(methodPattern.startsWith("GET"))
-            methodPattern = methodPattern.replace("GET", "get");
-        else if(methodPattern.startsWith("POST"))
-            methodPattern = methodPattern.replace("POST", "post");
-        else if(methodPattern.startsWith("PUT"))
-            methodPattern = methodPattern.replace("PUT", "put");
-        else if(methodPattern.startsWith("DELETE"))
-            methodPattern = methodPattern.replace("DELETE", "delete");
-        else if(methodPattern.startsWith("OPTIONS"))
-            methodPattern = methodPattern.replace("OPTIONS", "options");
-        else if(methodPattern.startsWith("HEAD"))
-            methodPattern = methodPattern.replace("HEAD", "head");
-        else
-            throw new Exception("method pattern is incorrect.");
-
-        if(!methodPattern.contains("#"))
-            return methodPattern.concat(getRandomName(8));
-
-        char[] chars = methodPattern.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            if(chars[i] == '#' || chars[i] == ':') {
-                chars[++i] = String.valueOf(chars[i])
-                        .toUpperCase().charAt(0);
-            }
-        }
-        return new String(chars)
-                .replaceAll("#", "")
-                .replaceAll(":", "");
     }
 
     private static Class registerClass(
@@ -446,8 +348,194 @@ public class RouteClassGenerator {
         final Unsafe unsafe = (Unsafe) f.get(null);
         final Class aClass = unsafe.defineClass(
                 fullClassName, bytes, 0, bytes.length,
-                RouteClassGenerator.class.getClassLoader(),
+                RouteClassGeneratorEx.class.getClassLoader(),
                 null);
         return aClass;
+    }
+
+    private static class UtilityClass {
+        private static String getMethodName(String methodPattern)
+                throws Exception {
+            if(methodPattern == null)
+                throw new Exception("method pattern is null.");
+            else if(methodPattern.startsWith("GET"))
+                methodPattern = methodPattern.replace("GET", "get");
+            else if(methodPattern.startsWith("POST"))
+                methodPattern = methodPattern.replace("POST", "post");
+            else if(methodPattern.startsWith("PUT"))
+                methodPattern = methodPattern.replace("PUT", "put");
+            else if(methodPattern.startsWith("DELETE"))
+                methodPattern = methodPattern.replace("DELETE", "delete");
+            else if(methodPattern.startsWith("OPTIONS"))
+                methodPattern = methodPattern.replace("OPTIONS", "options");
+            else if(methodPattern.startsWith("HEAD"))
+                methodPattern = methodPattern.replace("HEAD", "head");
+            else
+                throw new Exception("method pattern is incorrect.");
+
+            if(!methodPattern.contains("#"))
+                return methodPattern.concat(getRandomName(8));
+
+            char[] chars = methodPattern.toCharArray();
+            for (int i = 0; i < chars.length; i++) {
+                if(chars[i] == '#' || chars[i] == ':') {
+                    chars[++i] = String.valueOf(chars[i])
+                            .toUpperCase().charAt(0);
+                }
+            }
+            return new String(chars)
+                    .replaceAll("#", "")
+                    .replaceAll(":", "");
+        }
+
+        private static String fetchHttpMethod(
+                String methodPatterns) {
+            if(!methodPatterns.contains("#"))
+                return methodPatterns;
+            return methodPatterns.substring(0,
+                    methodPatterns.indexOf("#"));
+        }
+
+        private static String fetchPathParamStrings(
+                String methodPattern) {
+            if(methodPattern.contains("#"))
+                return methodPattern.substring(
+                        methodPattern.indexOf("#") + 1,
+                        methodPattern.length());
+            return null;
+        }
+
+        private static String[] fetchPathParamList(
+                String methodPattern) {
+            String pathParamStrings =
+                    fetchPathParamStrings(methodPattern);
+            if(pathParamStrings == null)
+                return null;
+            return pathParamStrings.split(":");
+        }
+
+        private static String createRestPathURL(
+                String[] pathParamList) {
+            String path = "";
+            for(String pathParam :
+                    pathParamList)
+                path = path.concat("/{")
+                        .concat(pathParam).concat("}");
+            return path;
+        }
+
+        private static String createConsumes(
+                PianaRouteConfig routeConfig,
+                String httpMethod)
+                throws Exception {
+            String bodyJsonObject =
+                    routeConfig.getBodyJsonObject();
+            if(bodyJsonObject != null &&
+                    !bodyJsonObject.isEmpty()) {
+                if(httpMethod.equalsIgnoreCase("GET") ||
+                        httpMethod.equalsIgnoreCase("HEAD") ||
+                        httpMethod.equalsIgnoreCase("DELETE") ||
+                        httpMethod.equalsIgnoreCase("TRACE") ||
+                        httpMethod.equalsIgnoreCase("OPTIONS") ||
+                        httpMethod.equalsIgnoreCase("CONNECT"))
+                    throw new Exception("http method don't support body");
+                return "@Consumes(MediaType.APPLICATION_JSON)\n";
+            }
+            return null;
+        }
+
+        private static String fetchConsumeObjectName(
+                PianaRouteConfig routeConfig) {
+            String bodyJsonObject =
+                    routeConfig.getBodyJsonObject();
+            if(bodyJsonObject != null &&
+                    !bodyJsonObject.isEmpty()) {
+                return bodyJsonObject.substring(
+                        bodyJsonObject
+                                .lastIndexOf(".") + 1);
+            }
+            return null;
+        }
+
+        private static String createBodyObjectParam(
+                PianaRouteConfig routeConfig) {
+            String bodyJsonObject = routeConfig
+                    .getBodyJsonObject();
+            if(bodyJsonObject != null &&
+                    !bodyJsonObject.isEmpty()) {
+                return bodyJsonObject
+                        .concat(" ")
+                        .concat(UtilityClass
+                                .fetchConsumeObjectName(
+                                        routeConfig))
+                        .concat(",");
+            }
+            return null;
+        }
+
+        public static boolean checkMethodCorrection(
+                PianaRouteConfig routeConfig)
+                throws Exception {
+            boolean isAsset = routeConfig.isAsset();
+            if(routeConfig.getPathParams() != null) {
+                if(isAsset &&
+                        routeConfig.getPathParams().size() > 1) {
+                    throw new Exception(
+                            "this asset path not set corrected!");
+                }
+            }
+            return isAsset;
+        }
+
+        public static String createMethodSignature(
+                String methodPattern,
+                PianaRouteConfig routeConfig)
+                throws Exception {
+            String methodName = getMethodName(methodPattern);
+            String signature = "public Response "
+                    .concat(methodName)
+                    .concat("(@Context HttpHeaders httpHeaders,")
+                    .concat("@Context UriInfo uriInfo");
+
+            //add body object to parameter list
+            String bodyObjectParam = UtilityClass
+                    .createBodyObjectParam(routeConfig);
+            if(bodyObjectParam != null) {
+                signature = signature.concat(",")
+                        .concat(bodyObjectParam);
+            }
+
+            return signature.concat(") throws Exception {\n");
+        }
+
+        private static String fetchCallClassName(
+                PianaRouteConfig routeConfig) throws Exception {
+            String handler = routeConfig.getHandler();
+            String callClassName = null;
+            if(handler != null && !handler.isEmpty()) {
+                callClassName = handler.substring(
+                        0, handler.lastIndexOf("."));
+            }
+            if(callClassName == null
+                    && !routeConfig.isAsset()) {
+                throw new Exception("handler is incorrect.");
+            }
+            return callClassName;
+        }
+
+        private static String fetchCallMethodName(
+                PianaRouteConfig routeConfig) throws Exception {
+            String handler = routeConfig.getHandler();
+            String callMethodName = null;
+            if(handler != null && !handler.isEmpty()) {
+                callMethodName = handler.substring(
+                        handler.lastIndexOf(".") + 1);
+            }
+            if(callMethodName == null
+                    && !routeConfig.isAsset()) {
+                throw new Exception("handler is incorrect.");
+            }
+            return callMethodName;
+        }
     }
 }

@@ -8,14 +8,14 @@
     },
     "GET#name": {
       "handler": "ir.piana.dev.server.sample.SampleServiceTest.getHelloToName",
-      "path-params": ["name"],
+      "path-params": [],
       "query-params": [],
       "role": "ADMIN"
     },
     "GET#name:family": {
       "handler": "ir.piana.dev.server.sample.SampleServiceTest.getMessageToNameFamily",
-      "path-params": ["name", "family"],
-      "query-params": ["message"]
+      "path-params": [],
+      "query-params": []
     }
   }
 }

@@ -3,6 +3,7 @@ package ir.piana.dev.server.route;
 import ir.piana.dev.server.asset.PianaAssetResolver;
 import ir.piana.dev.server.config.PianaServerConfig;
 import ir.piana.dev.server.response.PianaResponse;
+import ir.piana.dev.server.role.RoleType;
 import ir.piana.dev.server.session.Session;
 import ir.piana.dev.server.session.SessionManager;
 import org.apache.log4j.Logger;
@@ -13,7 +14,10 @@ import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Mohammad Rahmati, 5/3/2017 7:28 AM
@@ -47,6 +51,17 @@ public class RouteService {
         sessionManager = (SessionManager) config
                 .getProperty(SessionManager
                         .PIANA_SESSION_MANAGER);
+    }
+
+    protected Map<String, List<String>> createParameters(
+            UriInfo uriInfo) {
+        return Stream.concat(
+                uriInfo.getPathParameters().entrySet().stream(),
+                uriInfo.getQueryParameters().entrySet().stream())
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey(),
+                        entry -> entry.getValue()
+                ));
     }
 
     protected PianaAssetResolver registerAssetResolver(
