@@ -21,9 +21,7 @@ class NettyHttpServer
             PianaRouterConfig routerConfig) {
         this.serverConfig = serverConfig;
         this.routerConfig = routerConfig;
-        this.sessionConfig = new PianaSessionConfig();
-        this.sessionConfig.reconfigure(
-                serverConfig.getSessionConfig());
+        this.sessionConfig = serverConfig.getSessionConfig();
     }
 
     @Override

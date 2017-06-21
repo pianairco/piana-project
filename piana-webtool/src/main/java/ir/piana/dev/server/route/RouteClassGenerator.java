@@ -31,7 +31,7 @@ public class RouteClassGenerator {
             PianaRouterConfig routerConfig,
             String outputClassPath)
             throws Exception {
-        Set<String> routes = routerConfig.getRoutes();
+        Set<String> routes = routerConfig.getUrlPattens();
         Set<Class<?>> classes = new HashSet<>();
         /**
          * setRoot = "/" default for index.html

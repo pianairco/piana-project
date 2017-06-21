@@ -13,6 +13,7 @@ import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,27 @@ public class RouteService {
                         entry -> entry.getKey(),
                         entry -> entry.getValue()
                 ));
+    }
+
+    protected Map<String, List<String>> createParameters(
+            UriInfo uriInfo,
+            String urlPattern,
+            String methodPattern) {
+        Map<String, List<String>> collect = Stream.concat(
+                uriInfo.getPathParameters().entrySet().stream(),
+                uriInfo.getQueryParameters().entrySet().stream())
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey(),
+                        entry -> entry.getValue()
+                ));
+        ArrayList<String> urlPatterns = new ArrayList<>();
+        urlPatterns.add(urlPattern);
+        collect.put("url-pattern", urlPatterns);
+
+        ArrayList<String> methodPatterns = new ArrayList<>();
+        methodPatterns.add(methodPattern);
+        collect.put("method-pattern", methodPatterns);
+        return collect;
     }
 
     protected PianaAssetResolver registerAssetResolver(

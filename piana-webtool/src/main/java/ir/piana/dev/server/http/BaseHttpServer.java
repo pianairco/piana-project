@@ -36,20 +36,18 @@ public abstract class BaseHttpServer {
             InputStream serverConfigStream,
             InputStream routerConfigStream)
             throws Exception {
-        PianaServerConfig pianaServerConfig =
-                new PianaServerConfig();
-        pianaServerConfig.reconfigure(PianaConfigReader
-                .createFromJson(serverConfigStream));
-        PianaRouterConfig pianaRouterConfig =
-                new PianaRouterConfig();
-        pianaRouterConfig.reconfigure(PianaConfigReader
-                .createFromJson(routerConfigStream));
+        PianaServerConfig psConfig = new PianaServerConfig(
+                PianaConfigReader.createFromJson(
+                        serverConfigStream));
+        PianaRouterConfig prConfig = new PianaRouterConfig(
+                PianaConfigReader.createFromJson(
+                        routerConfigStream));
         HttpServerType serverType =
-                pianaServerConfig.getServerType();
+                psConfig.getServerType();
 
         if(HttpServerType.NETTY == serverType)
             return new NettyHttpServer(
-                    pianaServerConfig, pianaRouterConfig);
+                    psConfig, prConfig);
         else
             throw new Exception("type of http server not founded.");
     }

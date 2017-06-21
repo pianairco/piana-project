@@ -6,7 +6,6 @@ import ir.piana.dev.secure.util.HexConverter;
 import ir.piana.dev.server.config.PianaRouterConfig;
 import ir.piana.dev.server.config.PianaRouterConfig.PianaRouteConfig;
 import ir.piana.dev.server.role.RoleType;
-import ir.piana.dev.server.session.Session;
 import org.apache.log4j.Logger;
 import sun.misc.Unsafe;
 
@@ -32,18 +31,18 @@ public class RouteClassGeneratorEx {
             PianaRouterConfig routerConfig,
             String outputClassPath)
             throws Exception {
-        Set<String> routes = routerConfig.getRoutes();
+        Set<String> urlPattens = routerConfig.getUrlPattens();
         Set<Class<?>> classes = new HashSet<>();
 
         boolean setRoot = false;
-        for(String route : routes) {
-            final String className = getClassName(route);
+        for(String urlPattern : urlPattens) {
+            final String className = getClassName(urlPattern);
             final String fullClassName = packageName
                     .replace('.', '/')
                     .concat("/")
                     .concat(className);
             StringBuilder classSource = createClassSource(
-                    routerConfig, route, className);
+                    routerConfig, urlPattern, className);
 
             if(outputClassPath != null && !outputClassPath.isEmpty()) {
 
@@ -76,19 +75,20 @@ public class RouteClassGeneratorEx {
 
     static StringBuilder createClassSource(
             PianaRouterConfig routerConfig,
-            String route, String className
+            String urlPattern,
+            String className
     ) throws Exception {
         StringBuilder sb = initializeRouteClass(
-                route, className);
+                urlPattern, className);
         Set<String> httpMethodPatterns =
-                routerConfig.getHttpMethodPatterns(route);
+                routerConfig.getHttpMethodPatterns(urlPattern);
         if(httpMethodPatterns != null) {
             for(String httpMethodPattern : httpMethodPatterns) {
                 PianaRouteConfig routeConfig =
                         routerConfig.getRouteConfig(
-                                route, httpMethodPattern);
+                                urlPattern, httpMethodPattern);
                 appendRouteMethod(
-                        route.concat(httpMethodPattern),
+                        urlPattern,
                         httpMethodPattern,
                         routeConfig,
                         sb);
@@ -141,12 +141,13 @@ public class RouteClassGeneratorEx {
     }
 
     static void appendRouteMethod(
-            String urlPath,
+            String urlPattern,
             String methodPattern,
             PianaRouteConfig routeConfig,
             StringBuilder sb)
             throws Exception {
-
+        String methodKey = urlPattern
+                .concat(methodPattern);
         //check if is asset must be have 0 or 1 path param
         boolean isAsset = UtilityClass
                 .checkMethodCorrection(routeConfig);
@@ -195,11 +196,15 @@ public class RouteClassGeneratorEx {
         sb.append("PianaResponse response = unauthorizedPianaResponse;\n");
         sb.append("Session session = null;\n");
 
-        if(isAsset && pathParamList.length == 1) {
+        if(isAsset
+                && pathParamList != null
+                && pathParamList.length == 1) {
             sb.append("if(!isAssetExist(\""
                     .concat(routeConfig.getAssetPath())
                     .concat("\",")
+                    .concat("uriInfo.getPathParameters().getFirst(\"")
                     .concat(pathParamList[0])
+                    .concat("\")")
                     .concat(")) {\n")
                     .concat("return createResponse(notFoundResponse(), null, httpHeaders);\n")
                     .concat("}\n"));
@@ -217,13 +222,13 @@ public class RouteClassGeneratorEx {
         if(isAsset)
             sb.append("PianaAssetResolver assetResolver = "
                     .concat("registerAssetResolver(\"")
-                    .concat(urlPath)
+                    .concat(methodKey)
                     .concat("\",\"")
                     .concat(routeConfig.getAssetPath())
                     .concat("\");\n"));
         String registerMethod = "Method m = registerMethod(\""
-                .concat(urlPath)
-                .concat("\",\"");
+                .concat(methodKey)
+                .concat("\",");
 
         String callClassName = UtilityClass
                 .fetchCallClassName(routeConfig);
@@ -235,12 +240,14 @@ public class RouteClassGeneratorEx {
                         "\"ir.piana.dev.server.route.AssetService\",")
                         .concat("\"getAsset\",");
             else
-                registerMethod = registerMethod.concat(callClassName)
+                registerMethod = registerMethod.concat("\"")
+                        .concat(callClassName)
                         .concat("\",\"")
                         .concat(callMethodName)
                         .concat("\",");
         else
-            registerMethod = registerMethod.concat(callClassName)
+            registerMethod = registerMethod.concat("\"")
+                    .concat(callClassName)
                     .concat("\",\"")
                     .concat(callMethodName)
                     .concat("\",");
@@ -259,7 +266,14 @@ public class RouteClassGeneratorEx {
                     "response = invokeMethod(m, session, assetResolver,");
         else
             sb.append("response = invokeMethod(m, session,");
-        sb.append("createParameters(uriInfo),");
+        if(routeConfig.isUrlInjected())
+            sb.append("createParameters(uriInfo,\""
+                    .concat(urlPattern)
+                    .concat("\",\"")
+                    .concat(methodPattern)
+                    .concat("\"),"));
+        else
+            sb.append("createParameters(uriInfo),");
 
         String bodyJsonObjectName = UtilityClass
                 .fetchConsumeObjectName(
@@ -467,8 +481,7 @@ public class RouteClassGeneratorEx {
                         .concat(" ")
                         .concat(UtilityClass
                                 .fetchConsumeObjectName(
-                                        routeConfig))
-                        .concat(",");
+                                        routeConfig));
             }
             return null;
         }

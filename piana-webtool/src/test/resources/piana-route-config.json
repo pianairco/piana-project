@@ -8,7 +8,7 @@
     },
     "GET#name": {
       "handler": "ir.piana.dev.server.sample.SampleServiceTest.getHelloToName",
-      "path-params": [],
+      "path-params": ["name:string"],
       "query-params": [],
       "role": "ADMIN"
     },

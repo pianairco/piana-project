@@ -1,6 +1,9 @@
 package ir.piana.dev.server.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -48,6 +51,23 @@ public class PianaConfigReader {
             logger.error(e.getMessage());
         }
         return pianaConfig;
+    }
+
+    public static PianaConfig createFromJsonNode(
+            InputStream inputStream)
+            throws Exception {
+        if(inputStream == null)
+            throw new Exception("input stream is null");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            PianaConfig pianaConfig = new PianaConfig(
+                    objectMapper.readTree(inputStream));
+            return pianaConfig;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return new PianaConfig();
     }
 
     public static PianaConfig createFromMap(
