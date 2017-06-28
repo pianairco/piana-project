@@ -81,4 +81,21 @@ public class PianaConfigReader {
         pianaConfig.configMap = configMap;
         return pianaConfig;
     }
+
+    public static PianaServiceConfig createPianaServiceConfig(
+            InputStream inputStream)
+            throws Exception {
+        if(inputStream == null)
+            throw new Exception("input stream is null");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            PianaServiceConfig config = new PianaServiceConfig(
+                    objectMapper.readTree(inputStream));
+            return config;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw e;
+        }
+    }
 }
