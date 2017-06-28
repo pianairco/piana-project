@@ -24,7 +24,7 @@ public class PianaServiceConfig {
         this.objectNode = (ObjectNode) jsonNode;
     }
 
-    protected List<String> getUrls() {
+    public List<String> getUrls() {
         if(urls != null)
             return urls;
         urls = new ArrayList<>();
@@ -36,7 +36,7 @@ public class PianaServiceConfig {
         return urls;
     }
 
-    protected List<String> getMethods(String url)
+    public List<String> getMethods(String url)
             throws Exception {
         List<String> urls = getUrls();
         if(!urls.contains(url))
@@ -58,7 +58,7 @@ public class PianaServiceConfig {
         return methodList;
     }
 
-    protected ObjectNode getMethodObject(
+    public ObjectNode getMethodObject(
             String url,
             String method)
             throws Exception {
