@@ -20,6 +20,23 @@ public class PianaConfigReader {
             Logger.getLogger(
                     PianaConfigReader.class);
 
+    public static JsonNode createJsonNode(
+            InputStream inputStream)
+            throws Exception {
+        if(inputStream == null)
+            throw new Exception("input stream is null");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = null;
+        try {
+            jsonNode = objectMapper.readTree(
+                    inputStream);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+        return jsonNode;
+    }
+
     public static PianaConfig createFromJson(
             String configFilePath)
             throws Exception {
@@ -97,5 +114,16 @@ public class PianaConfigReader {
             logger.error(e.getMessage());
             throw e;
         }
+    }
+
+    public static PianaServiceConfig createPianaServiceConfig(
+            JsonNode jsonNode)
+            throws Exception {
+        if(jsonNode == null)
+            throw new Exception("input json node is null");
+
+        PianaServiceConfig config = new PianaServiceConfig(
+                    jsonNode);
+            return config;
     }
 }
