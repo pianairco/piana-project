@@ -56,13 +56,14 @@ public class RouteService {
 
     protected Map<String, List<String>> createParameters(
             UriInfo uriInfo) {
-        return Stream.concat(
+        Map<String, List<String>> collect = Stream.concat(
                 uriInfo.getPathParameters().entrySet().stream(),
                 uriInfo.getQueryParameters().entrySet().stream())
                 .collect(Collectors.toMap(
                         entry -> entry.getKey(),
                         entry -> entry.getValue()
                 ));
+        return collect;
     }
 
     protected Map<String, List<String>> createParameters(

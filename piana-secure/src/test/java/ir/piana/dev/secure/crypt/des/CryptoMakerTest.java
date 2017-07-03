@@ -5,6 +5,7 @@ import ir.piana.dev.secure.crypto.CryptoMaker;
 import ir.piana.dev.secure.key.SecretKeyAlgorithm;
 import ir.piana.dev.secure.key.SecretKeyMaker;
 import org.apache.commons.codec.binary.Hex;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.crypto.SecretKey;
@@ -21,10 +22,12 @@ public class CryptoMakerTest {
                 "Hello".getBytes("UTF-8"),
                 secretKey,
                 CryptoAttribute.DES_ECB_PKCS_5_PADDING);
-        System.out.println(Hex.encodeHexString(encrypted));
+//        System.out.println(Hex.encodeHexString(encrypted));
         byte[] decrypted = CryptoMaker.decrypt(encrypted,
                 secretKey,
                 CryptoAttribute.DES_ECB_PKCS_5_PADDING);
-        System.out.println(new String(decrypted, "UTF-8"));
+        Assert.assertEquals("not correct decryption",
+                "Hello",
+                new String(decrypted, "UTF-8"));
     }
 }

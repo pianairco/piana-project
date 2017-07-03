@@ -16,7 +16,7 @@ import java.security.KeyPair;
  */
 public class CryptoRsaTest {
     private static KeyPair keyPair = null;
-    static byte[] RAW_BYTES;
+    static byte[] rawBytes;
 
     @BeforeClass
     public static void beforeClass()
@@ -24,13 +24,13 @@ public class CryptoRsaTest {
         keyPair = KeyPairMaker
                 .createKeyPair(
                         KeyPairAlgorithm.RSA_1024);
-        RAW_BYTES = new byte[] {9, 8, 7, 6, 5, 4, 3, 2, 1};
+        rawBytes = new byte[] {9, 8, 7, 6, 5, 4, 3, 2, 1};
     }
 
     @Test
     public void encrypt()
             throws Exception {
-        byte[] encrypted = CryptoMaker.encrypt(RAW_BYTES,
+        byte[] encrypted = CryptoMaker.encrypt(rawBytes,
                 keyPair.getPublic(),
                 CryptoAttribute.RSA);
         byte[] decrypted = CryptoMaker.decrypt(
@@ -39,7 +39,7 @@ public class CryptoRsaTest {
                 CryptoAttribute.RSA);
 
         Assert.assertEquals(
-                HexConverter.toHexString(RAW_BYTES),
+                HexConverter.toHexString(rawBytes),
                 HexConverter.toHexString(decrypted));
     }
 }

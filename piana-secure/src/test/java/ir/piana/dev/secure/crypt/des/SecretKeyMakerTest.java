@@ -2,6 +2,7 @@ package ir.piana.dev.secure.crypt.des;
 
 import ir.piana.dev.secure.key.SecretKeyAlgorithm;
 import ir.piana.dev.secure.key.SecretKeyMaker;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.crypto.SecretKey;
@@ -18,8 +19,10 @@ public class SecretKeyMakerTest {
                         SecretKeyAlgorithm.AES_192);
         String keyString =
                 SecretKeyMaker.asString(secretKey);
-        System.out.println(keyString);
+//        System.out.println(keyString);
         SecretKey secretKey1 = SecretKeyMaker.asSecretKey(keyString,
                 SecretKeyAlgorithm.AES_192);
+        Assert.assertTrue("secret keys not equals",
+                secretKey.equals(secretKey1));
     }
 }

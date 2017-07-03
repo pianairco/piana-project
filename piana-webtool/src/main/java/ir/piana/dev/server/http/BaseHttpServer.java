@@ -48,6 +48,9 @@ public abstract class BaseHttpServer {
         if(HttpServerType.NETTY == serverType)
             return new NettyHttpServer(
                     psConfig, prConfig);
+        else if(HttpServerType.JETTY == serverType)
+            return new JettyHttpServer(
+                    psConfig, prConfig);
         else
             throw new Exception("type of http server not founded.");
     }

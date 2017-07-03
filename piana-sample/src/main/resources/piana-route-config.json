@@ -4,7 +4,7 @@
       "asset-path": "./react-client",
       "asset-path-fake": "./piana-sample/asset-dir"
     },
-    "GET#file": {
+    "GET#file*": {
       "asset-path": "./react-client",
       "asset-path-fake": "./piana-sample/asset-dir",
       "path-params": ["file:.*"]

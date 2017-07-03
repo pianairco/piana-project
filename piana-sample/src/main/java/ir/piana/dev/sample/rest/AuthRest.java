@@ -44,8 +44,8 @@ public class AuthRest {
             Map<String, List<String>> mapParams) {
         session.setRoleType(RoleType.ADMIN);
         return new PianaResponse(Response.Status.OK,
-                null,
-                MediaType.APPLICATION_JSON,
+                "get user",
+                MediaType.TEXT_PLAIN,
                 Charset.forName("UTF-8"));
     }
 }

@@ -12,7 +12,7 @@ import org.glassfish.jersey.netty.httpserver.NettyHttpContainerProvider;
  */
 class NettyHttpServer
         extends BaseHttpServer {
-    final static Logger logger =
+    private final static Logger logger =
             Logger.getLogger(NettyHttpServer.class);
     private Channel channel = null;
 

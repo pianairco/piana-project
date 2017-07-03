@@ -15,6 +15,7 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.*;
 
+import static io.netty.util.internal.SystemPropertyUtil.contains;
 import static java.util.Collections.singletonList;
 import static javax.tools.JavaFileObject.Kind.SOURCE;
 
@@ -199,15 +200,19 @@ public class RouteClassGeneratorEx {
         if(isAsset
                 && pathParamList != null
                 && pathParamList.length == 1) {
+            sb.append("System.out.println(\"with param\");\n");
             sb.append("if(!isAssetExist(\""
                     .concat(routeConfig.getAssetPath())
                     .concat("\",")
                     .concat("uriInfo.getPathParameters().getFirst(\"")
-                    .concat(pathParamList[0])
+                    .concat(pathParamList[0].substring(
+                            0, pathParamList[0].indexOf(':')))
                     .concat("\")")
                     .concat(")) {\n")
                     .concat("return createResponse(notFoundResponse(), null, httpHeaders);\n")
                     .concat("}\n"));
+        } else {
+            sb.append("System.out.println(\"without param\");\n");
         }
         if (routeRoleType != RoleType.NEEDLESS) {
             sb.append("session = doAuthorization(httpHeaders);\n"
@@ -372,25 +377,26 @@ public class RouteClassGeneratorEx {
                 throws Exception {
             if(methodPattern == null)
                 throw new Exception("method pattern is null.");
-            else if(methodPattern.startsWith("GET"))
-                methodPattern = methodPattern.replace("GET", "get");
-            else if(methodPattern.startsWith("POST"))
-                methodPattern = methodPattern.replace("POST", "post");
-            else if(methodPattern.startsWith("PUT"))
-                methodPattern = methodPattern.replace("PUT", "put");
-            else if(methodPattern.startsWith("DELETE"))
-                methodPattern = methodPattern.replace("DELETE", "delete");
-            else if(methodPattern.startsWith("OPTIONS"))
-                methodPattern = methodPattern.replace("OPTIONS", "options");
-            else if(methodPattern.startsWith("HEAD"))
-                methodPattern = methodPattern.replace("HEAD", "head");
+            String methodName = methodPattern;
+            if(methodName.startsWith("GET"))
+                methodName = methodName.replace("GET", "get");
+            else if(methodName.startsWith("POST"))
+                methodName = methodName.replace("POST", "post");
+            else if(methodName.startsWith("PUT"))
+                methodName = methodName.replace("PUT", "put");
+            else if(methodName.startsWith("DELETE"))
+                methodName = methodName.replace("DELETE", "delete");
+            else if(methodName.startsWith("OPTIONS"))
+                methodName = methodName.replace("OPTIONS", "options");
+            else if(methodName.startsWith("HEAD"))
+                methodName = methodName.replace("HEAD", "head");
             else
                 throw new Exception("method pattern is incorrect.");
 
-            if(!methodPattern.contains("#"))
-                return methodPattern.concat(getRandomName(8));
+            if(!methodName .contains("#"))
+                return methodName.concat(getRandomName(8));
 
-            char[] chars = methodPattern.toCharArray();
+            char[] chars = methodName.toCharArray();
             for (int i = 0; i < chars.length; i++) {
                 if(chars[i] == '#' || chars[i] == ':') {
                     chars[++i] = String.valueOf(chars[i])
@@ -399,7 +405,8 @@ public class RouteClassGeneratorEx {
             }
             return new String(chars)
                     .replaceAll("#", "")
-                    .replaceAll(":", "");
+                    .replaceAll(":", "")
+                    .replaceAll("\\*", "");
         }
 
         private static String fetchHttpMethod(
@@ -425,7 +432,16 @@ public class RouteClassGeneratorEx {
                     fetchPathParamStrings(methodPattern);
             if(pathParamStrings == null)
                 return null;
-            return pathParamStrings.split(":");
+            String[] params = pathParamStrings.split(":");
+            String[] outParams = new String[params.length];
+            for(int i = 0; i < params.length; i++) {
+                String temp = params[i];
+                if(temp.contains("*"))
+                    outParams[i] = temp.substring(0, temp.indexOf('*')).concat(":.*");
+                else
+                    outParams[i] = temp;
+            }
+            return outParams;
         }
 
         private static String createRestPathURL(
