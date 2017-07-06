@@ -6,6 +6,7 @@ import ir.piana.dev.server.config.PianaServerConfig;
 import ir.piana.dev.server.config.PianaServerConfig.PianaSessionConfig;
 import ir.piana.dev.server.filter.response.CORSFilter;
 import ir.piana.dev.server.route.RouteClassGenerator;
+import ir.piana.dev.server.route.RouteClassGeneratorEx;
 import ir.piana.dev.server.session.SessionManager;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -35,20 +36,21 @@ public abstract class BaseHttpServer {
             InputStream serverConfigStream,
             InputStream routerConfigStream)
             throws Exception {
-        PianaServerConfig pianaServerConfig =
-                new PianaServerConfig();
-        pianaServerConfig.reconfigure(PianaConfigReader
-                .createFromJson(serverConfigStream));
-        PianaRouterConfig pianaRouterConfig =
-                new PianaRouterConfig();
-        pianaRouterConfig.reconfigure(PianaConfigReader
-                .createFromJson(routerConfigStream));
+        PianaServerConfig psConfig = new PianaServerConfig(
+                PianaConfigReader.createFromJson(
+                        serverConfigStream));
+        PianaRouterConfig prConfig = new PianaRouterConfig(
+                PianaConfigReader.createFromJson(
+                        routerConfigStream));
         HttpServerType serverType =
-                pianaServerConfig.getServerType();
+                psConfig.getServerType();
 
         if(HttpServerType.NETTY == serverType)
             return new NettyHttpServer(
-                    pianaServerConfig, pianaRouterConfig);
+                    psConfig, prConfig);
+        else if(HttpServerType.JETTY == serverType)
+            return new JettyHttpServer(
+                    psConfig, prConfig);
         else
             throw new Exception("type of http server not founded.");
     }
@@ -64,7 +66,7 @@ public abstract class BaseHttpServer {
             logger.error("server is started already.");
             return;
         }
-        Set<Class<?>> classes = RouteClassGenerator
+        Set<Class<?>> classes = RouteClassGeneratorEx
                     .generateRouteClasses(routerConfig,
                             serverConfig.getOutputClassPath());
         resourceConfig.registerClasses(classes);

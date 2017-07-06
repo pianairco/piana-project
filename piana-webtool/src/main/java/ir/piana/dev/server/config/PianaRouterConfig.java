@@ -12,8 +12,8 @@ import java.util.Set;
  */
 public class PianaRouterConfig
         extends PianaConfig {
-    public static final String SHB_ROUTER_CONFIG =
-            "shb-router-config";
+    public static final String PIANA_ROUTER_CONFIG =
+            "piana-router-config";
     public static final String METHOD_CONFIG
             = "method";
 
@@ -21,34 +21,39 @@ public class PianaRouterConfig
             Logger.getLogger(
                     PianaRouterConfig.class);
 
-    public Set<String> getRoutes() {
+    public PianaRouterConfig(
+            PianaConfig pianaConfig) {
+        reconfigure(pianaConfig);
+    }
+
+    public Set<String> getUrlPattens() {
         return configMap.keySet();
     }
 
-    public Set<String> getHttpMethods(
-            String route) {
-        if (route == null || route.isEmpty())
-            route = new String("/");
-        if (getPianaConfig(route) == null)
+    public Set<String> getHttpMethodPatterns(
+            String urlPattern) {
+        if (urlPattern == null || urlPattern.isEmpty())
+            urlPattern = new String("/");
+        if (getPianaConfig(urlPattern) == null)
             return null;
-        Map<String, Object> configMap = getMap(route);
+        Map<String, Object> configMap = getMap(urlPattern);
         if (configMap != null)
             return configMap.keySet();
         return null;
     }
 
     public PianaRouteConfig getRouteConfig(
-            String route, String method) {
-        if (route == null || route.isEmpty())
-            route = new String("/");
-        if (getPianaConfig(route) == null)
+            String urlPattern, String methodPattern) {
+        if (urlPattern == null || urlPattern.isEmpty())
+            urlPattern = new String("/");
+        if (getPianaConfig(urlPattern) == null)
             return null;
-        Map<String, Object> configMap = getMap(route);
-        if (configMap.containsKey(method)) {
+        Map<String, Object> configMap = getMap(urlPattern);
+        if (configMap.containsKey(methodPattern)) {
             PianaRouteConfig routeConfig =
                     new PianaRouteConfig();
             routeConfig.reconfigure((Map<String, Object>)
-                    configMap.get(method));
+                    configMap.get(methodPattern));
             return routeConfig;
         }
         return null;
@@ -66,6 +71,8 @@ public class PianaRouterConfig
                 = "body-json-object";
         public static final String ROLE_CONFIG
                 = "role";
+        public static final String URL_INJECTED_CONFIG
+                = "url-injected";
         public static final String ASSET_PATH_CONFIG
                 = "asset-path";
 
@@ -87,6 +94,11 @@ public class PianaRouterConfig
 
         public String getRole() {
             return getString(ROLE_CONFIG);
+        }
+
+        public boolean isUrlInjected() {
+            return Boolean.valueOf(
+                    getString(URL_INJECTED_CONFIG));
         }
 
         public String getAssetPath() {

@@ -1,6 +1,9 @@
 package ir.piana.dev.server.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -16,6 +19,23 @@ public class PianaConfigReader {
     private static final Logger logger =
             Logger.getLogger(
                     PianaConfigReader.class);
+
+    public static JsonNode createJsonNode(
+            InputStream inputStream)
+            throws Exception {
+        if(inputStream == null)
+            throw new Exception("input stream is null");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = null;
+        try {
+            jsonNode = objectMapper.readTree(
+                    inputStream);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        }
+        return jsonNode;
+    }
 
     public static PianaConfig createFromJson(
             String configFilePath)
@@ -50,6 +70,23 @@ public class PianaConfigReader {
         return pianaConfig;
     }
 
+    public static PianaConfig createFromJsonNode(
+            InputStream inputStream)
+            throws Exception {
+        if(inputStream == null)
+            throw new Exception("input stream is null");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            PianaConfig pianaConfig = new PianaConfig(
+                    objectMapper.readTree(inputStream));
+            return pianaConfig;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return new PianaConfig();
+    }
+
     public static PianaConfig createFromMap(
             Map<String, Object> configMap)
             throws Exception {
@@ -60,5 +97,33 @@ public class PianaConfigReader {
                 new PianaConfig();
         pianaConfig.configMap = configMap;
         return pianaConfig;
+    }
+
+    public static PianaServiceConfig createPianaServiceConfig(
+            InputStream inputStream)
+            throws Exception {
+        if(inputStream == null)
+            throw new Exception("input stream is null");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            PianaServiceConfig config = new PianaServiceConfig(
+                    objectMapper.readTree(inputStream));
+            return config;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw e;
+        }
+    }
+
+    public static PianaServiceConfig createPianaServiceConfig(
+            JsonNode jsonNode)
+            throws Exception {
+        if(jsonNode == null)
+            throw new Exception("input json node is null");
+
+        PianaServiceConfig config = new PianaServiceConfig(
+                    jsonNode);
+            return config;
     }
 }

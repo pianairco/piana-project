@@ -5,13 +5,20 @@
       "asset-path-fake": "./piana-sample/asset-dir",
       "role": "GUEST"
     },
-    "GET#file": {
+    "GET#file*": {
       "asset-path": "./react-client",
       "asset-path-fake": "./piana-sample/asset-dir",
       "path-params": ["file:.*"]
     }
   },
   "/auth": {
+    "GET": {
+      "handler": "ir.piana.dev.sample.rest.AuthRest.getUser",
+      "path-params": [],
+      "query-params": [],
+      "role": "GUEST",
+      "url-injected": "true"
+    },
     "POST": {
       "handler": "ir.piana.dev.sample.rest.AuthRest.postUser",
       "path-params": [],

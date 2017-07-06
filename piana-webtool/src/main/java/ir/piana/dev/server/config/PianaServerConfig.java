@@ -36,6 +36,11 @@ public class PianaServerConfig
     public static final String REMOVE_OTHER_COOKIES
             = "remove-other-cookies";
 
+    public PianaServerConfig(
+            PianaConfig pianaConfig) {
+        reconfigure(pianaConfig);
+    }
+
     public HttpServerType getServerType() {
         if(configMap == null)
             return null;
@@ -58,7 +63,8 @@ public class PianaServerConfig
     public PianaSessionConfig getSessionConfig() {
         PianaSessionConfig sessionConfig =
                 new PianaSessionConfig();
-        sessionConfig.reconfigure(getPianaConfig(SESSION_CONFIG));
+        sessionConfig.reconfigure(
+                getPianaConfig(SESSION_CONFIG));
         return sessionConfig;
     }
 

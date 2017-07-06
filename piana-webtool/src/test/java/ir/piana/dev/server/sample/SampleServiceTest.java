@@ -9,8 +9,12 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Mohammad Rahmati, 5/15/2017 4:21 PM
@@ -34,11 +38,11 @@ public class SampleServiceTest {
                 routeConfigStream);
     }
 
-//    @AfterClass
-//    public static void afterClass()
-//            throws Exception {
-//        PianaAppMain.stopHttpServer();
-//    }
+    @AfterClass
+    public static void afterClass()
+            throws Exception {
+        PianaAppMain.stopHttpServer();
+    }
 
     @Before
     public void before() {
@@ -48,8 +52,9 @@ public class SampleServiceTest {
     @Test
     public void testPianaWebtool() {
         WebTarget target = client.target(BASE_URI);
-        javax.ws.rs.core.Response response = target.path("hello-world")
-                .request().get();
+        javax.ws.rs.core.Response response =
+                target.path("hello-world")
+                        .request().get();
         String hello = response
                 .readEntity(String.class);
         Assert.assertEquals("Hello World", hello);
@@ -57,8 +62,8 @@ public class SampleServiceTest {
     }
 
     public static PianaResponse getHelloWorld(
-            Session session
-    ) {
+            Session session,
+            Map<String, List<String>> parameters) {
         return new PianaResponse(
                 Status.OK,
                 "Hello World",
@@ -67,36 +72,34 @@ public class SampleServiceTest {
 
     public static PianaResponse getHelloToName(
             Session session,
-            String name
+            Map<String, List<String>> parameters
     ) {
         return new PianaResponse(Status.OK,
-                "hello ".concat(name),
+                "hello ".concat(parameters.get("name").get(0)),
                 MediaType.TEXT_PLAIN);
     }
 
     public static PianaResponse getHelloToNameFamily(
             Session session,
-            String name,
-            String family
+            Map<String, List<String>> parameters
     ) {
         return new PianaResponse(Status.OK,
-                "hello ".concat(name)
+                "hello ".concat(parameters.get("name").get(0))
                         .concat(" ")
-                        .concat(family),
+                        .concat(parameters.get("family").get(0)),
                 MediaType.TEXT_PLAIN);
     }
 
     public static PianaResponse getMessageToNameFamily(
             Session session,
-            String name,
-            String family,
-            String message
+            Map<String, List<String>> parameters
     ) {
         return new PianaResponse(Status.OK,
-                message.concat(" ")
-                        .concat(name)
+                parameters.get("message").get(0)
                         .concat(" ")
-                        .concat(family),
+                        .concat(parameters.get("name").get(0))
+                        .concat(" ")
+                        .concat(parameters.get("family").get(0)),
                 MediaType.TEXT_PLAIN);
     }
 }

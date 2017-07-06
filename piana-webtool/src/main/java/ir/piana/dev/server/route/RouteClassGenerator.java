@@ -31,7 +31,7 @@ public class RouteClassGenerator {
             PianaRouterConfig routerConfig,
             String outputClassPath)
             throws Exception {
-        Set<String> routes = routerConfig.getRoutes();
+        Set<String> routes = routerConfig.getUrlPattens();
         Set<Class<?>> classes = new HashSet<>();
         /**
          * setRoot = "/" default for index.html
@@ -82,7 +82,7 @@ public class RouteClassGenerator {
         StringBuilder sb = initializeRouteClass(
                 route, className);
         Set<String> httpMethods =
-                routerConfig.getHttpMethods(route);
+                routerConfig.getHttpMethodPatterns(route);
         if(httpMethods != null) {
             for(String httpMethod : httpMethods) {
                 String fixHttpMethod = httpMethod;
