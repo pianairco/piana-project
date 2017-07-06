@@ -2,7 +2,8 @@
   "/": {
     "GET": {
       "asset-path": "./react-client",
-      "asset-path-fake": "./piana-sample/asset-dir"
+      "asset-path-fake": "./piana-sample/asset-dir",
+      "role": "GUEST"
     },
     "GET#file": {
       "asset-path": "./react-client",
@@ -29,8 +30,7 @@
     "GET#name": {
       "handler": "ir.piana.dev.sample.rest.HelloWorldRest.getHelloToName",
       "path-params": ["name"],
-      "query-params": [],
-      "role": "ADMIN"
+      "query-params": []
     },
     "GET#name:family": {
       "handler": "ir.piana.dev.sample.rest.HelloWorldRest.getMessageToNameFamily",
