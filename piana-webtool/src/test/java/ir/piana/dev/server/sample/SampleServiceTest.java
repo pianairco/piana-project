@@ -50,7 +50,7 @@ public class SampleServiceTest {
     }
 
     @Test
-    public void testPianaWebtool() {
+    public void testHelloWorld() {
         WebTarget target = client.target(BASE_URI);
         javax.ws.rs.core.Response response =
                 target.path("hello-world")
@@ -58,6 +58,29 @@ public class SampleServiceTest {
         String hello = response
                 .readEntity(String.class);
         Assert.assertEquals("Hello World", hello);
+        response.close();
+    }
+
+    @Test
+    public void testHelloToName() {
+        WebTarget target = client.target(BASE_URI);
+        javax.ws.rs.core.Response response =
+                target.path("hello-world/ali")
+                        .request().get();
+        Assert.assertEquals(401, response.getStatus());
+        response.close();
+    }
+
+    @Test
+    public void testMessageToNameFamily() {
+        WebTarget target = client.target(BASE_URI);
+        javax.ws.rs.core.Response response =
+                target.path("hello-world/ali/ahmadi")
+                        .queryParam("message", "hi")
+                        .request().get();
+        String message = response
+                .readEntity(String.class);
+        Assert.assertEquals("hi ali ahmadi", message);
         response.close();
     }
 
@@ -75,18 +98,7 @@ public class SampleServiceTest {
             Map<String, List<String>> parameters
     ) {
         return new PianaResponse(Status.OK,
-                "hello ".concat(parameters.get("name").get(0)),
-                MediaType.TEXT_PLAIN);
-    }
-
-    public static PianaResponse getHelloToNameFamily(
-            Session session,
-            Map<String, List<String>> parameters
-    ) {
-        return new PianaResponse(Status.OK,
-                "hello ".concat(parameters.get("name").get(0))
-                        .concat(" ")
-                        .concat(parameters.get("family").get(0)),
+                "Hello ".concat(parameters.get("name").get(0)),
                 MediaType.TEXT_PLAIN);
     }
 

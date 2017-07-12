@@ -20,19 +20,19 @@ import javax.ws.rs.core.UriBuilder;
  * @author Mohammad Rahmati, 6/12/2017 7:16 AM
  */
 public class AuthRestTest {
-    @BeforeClass
+//    @BeforeClass
     public static void initClass()
             throws Exception {
         SampleAppMain.startApp();
     }
 
-    @AfterClass
+//    @AfterClass
     public static void terminateClass()
             throws Exception {
         SampleAppMain.stopApp();
     }
 
-    @Test
+//    @Test
     public void testPostUserGetUserModel() {
         ClientConfig config = new ClientConfig();
 
@@ -55,7 +55,7 @@ public class AuthRestTest {
                 "ali", userModel.getUserName());
     }
 
-    @Test
+//    @Test
     public void testPostUserGetResponse() {
         ClientConfig config = new ClientConfig();
 
