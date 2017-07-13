@@ -16,6 +16,11 @@ import java.util.Map;
 public class HelloWorldRest {
     public static PianaResponse getHelloWorld(
             Session session) {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return new PianaResponse(Response.Status.OK,
                 "Hello World!",
                 MediaType.TEXT_PLAIN);
@@ -24,6 +29,11 @@ public class HelloWorldRest {
     public static PianaResponse getHelloWorld(
             Session session,
             Map<String, List<String>> mapParams) {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return new PianaResponse(Response.Status.OK,
                 "Hello World!",
                 MediaType.TEXT_PLAIN);
@@ -40,6 +50,11 @@ public class HelloWorldRest {
     public static PianaResponse getHelloToName(
             Session session,
             Map<String, List<String>> mapParams) {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return new PianaResponse(Response.Status.OK,
                 "Hello ".concat(mapParams.get("name").get(0)),
                 MediaType.TEXT_PLAIN);

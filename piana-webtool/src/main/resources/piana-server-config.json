@@ -5,7 +5,6 @@
   "http-base-route": "",
   "rest-filters": [
   ],
-  "output-class-path": "",
   "remove-other-cookies": "true",
   "session":{
     "session-name": "PIANA_SESSION",

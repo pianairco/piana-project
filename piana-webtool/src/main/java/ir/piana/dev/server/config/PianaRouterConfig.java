@@ -67,6 +67,8 @@ public class PianaRouterConfig
                 = "path-params";
         public static final String QUERY_PARAMS_CONFIG
                 = "query-params";
+        public static final String ASYNC_CONFIG
+                = "async";
         public static final String BODY_JSON_OBJECT_CONFIG
                 = "body-json-object";
         public static final String ROLE_CONFIG
@@ -99,6 +101,11 @@ public class PianaRouterConfig
         public boolean isUrlInjected() {
             return Boolean.valueOf(
                     getString(URL_INJECTED_CONFIG));
+        }
+
+        public boolean isAsync() {
+            return Boolean.valueOf(
+                    getString(ASYNC_CONFIG));
         }
 
         public String getAssetPath() {

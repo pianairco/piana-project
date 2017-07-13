@@ -6,6 +6,7 @@ import ir.piana.dev.secure.util.HexConverter;
 import ir.piana.dev.server.config.PianaRouterConfig;
 import ir.piana.dev.server.config.PianaRouterConfig.PianaRouteConfig;
 import ir.piana.dev.server.role.RoleType;
+import org.apache.commons.lang3.text.StrBuilder;
 import org.apache.log4j.Logger;
 import sun.misc.Unsafe;
 
@@ -123,6 +124,8 @@ public class RouteClassGeneratorEx {
             throws Exception {
         final StringBuilder sb = new StringBuilder();
         sb.append("package ".concat(packageName).concat(";\n"));
+        sb.append("import javax.ws.rs.container.Suspended;");
+        sb.append("import javax.ws.rs.container.AsyncResponse;");
         sb.append("import javax.ws.rs.core.*;\n");
         sb.append("import javax.ws.rs.*;\n");
         sb.append("import javax.inject.Singleton;\n");
@@ -141,6 +144,166 @@ public class RouteClassGeneratorEx {
         return sb;
     }
 
+//    static void appendRouteMethod(
+//            String urlPattern,
+//            String methodPattern,
+//            PianaRouteConfig routeConfig,
+//            StringBuilder sb)
+//            throws Exception {
+//        String methodKey = urlPattern
+//                .concat(methodPattern);
+//        //check if is asset must be have 0 or 1 path param
+//        boolean isAsset = UtilityClass
+//                .checkMethodCorrection(routeConfig);
+//
+//        String httpMethod = UtilityClass
+//                .fetchHttpMethod(methodPattern);
+////        String pathParamStrings = UtilityClass
+////                .fetchPathParamStrings(methodPattern);
+//        String[] pathParamList = UtilityClass
+//                .fetchPathParamList(methodPattern);
+//
+//        //@GET or @POST or @DELETE or ...
+//        sb.append("@".concat(httpMethod).concat("\n"));
+//
+//
+//        //@Path({path-param}/{path-param})
+//        if(pathParamList != null) {
+//            sb.append("@Path(\""
+//                    .concat(UtilityClass.createRestPathURL(
+//                            pathParamList))
+//                    .concat("\")\n"));
+//        }
+//
+//        //@Consumes(MediaType.*)
+//        String consumes = UtilityClass.createConsumes(
+//                routeConfig, httpMethod);
+//        if(consumes != null) {
+//            sb.append("@Consumes(MediaType.APPLICATION_JSON)\n");
+//        }
+//
+//        //add method signature
+//        String methodSignature = null;
+//        if(!routeConfig.isAsync())
+//            methodSignature = UtilityClass
+//                    .createMethodSignature(
+//                            methodPattern, routeConfig);
+//        else
+//            methodSignature = UtilityClass
+//                    .createAsyncMethodSignature(
+//                            methodPattern, routeConfig);
+//        if (methodSignature != null)
+//            sb.append(methodSignature);
+//
+//        RoleType routeRoleType = RoleType.ADMIN;
+//        try {
+//            routeRoleType = RoleType
+//                    .getFromName(routeConfig.getRole());
+//        } catch (Exception e) {
+//            logger.error(e.getMessage());
+//        }
+//
+//        sb.append("PianaResponse response = unauthorizedPianaResponse;\n");
+//
+//        if(isAsset
+//                && pathParamList != null
+//                && pathParamList.length == 1) {
+////            sb.append("System.out.println(\"with param\");\n");
+//            sb.append("if(!isAssetExist(\""
+//                    .concat(routeConfig.getAssetPath())
+//                    .concat("\",")
+//                    .concat("uriInfo.getPathParameters().getFirst(\"")
+//                    .concat(pathParamList[0].substring(
+//                            0, pathParamList[0].indexOf(':')))
+//                    .concat("\")")
+//                    .concat(")) {\n")
+//                    .concat("return createResponse(notFoundResponse(), null, httpHeaders);\n")
+//                    .concat("}\n"));
+//        } else {
+////            sb.append("System.out.println(\"without param\");\n");
+//        }
+//        if (routeRoleType != RoleType.NEEDLESS) {
+//            sb.append("final Session session = doAuthorization(httpHeaders);\n"
+//                    .concat("if(!RoleType.")
+//                    .concat(routeRoleType.getName())
+//                    .concat(".isValid(session.getRoleType()))\n")
+//                    .concat("return createResponse(response, session, httpHeaders);\n"));
+//        } else
+//            sb.append("final Session session = doRevivalSession(httpHeaders);\n");
+//
+//        sb.append("try {\n");
+//        if(isAsset)
+//            sb.append("PianaAssetResolver assetResolver = "
+//                    .concat("registerAssetResolver(\"")
+//                    .concat(methodKey)
+//                    .concat("\",\"")
+//                    .concat(routeConfig.getAssetPath())
+//                    .concat("\");\n"));
+//        String registerMethod = "Method m = registerMethod(\""
+//                .concat(methodKey)
+//                .concat("\",");
+//
+//        String callClassName = UtilityClass
+//                .fetchCallClassName(routeConfig);
+//        String callMethodName = UtilityClass
+//                .fetchCallMethodName(routeConfig);
+//        if(isAsset)
+//            if(callClassName == null || callMethodName == null)
+//                registerMethod = registerMethod.concat(
+//                        "\"ir.piana.dev.server.route.AssetService\",")
+//                        .concat("\"getAsset\",");
+//            else
+//                registerMethod = registerMethod.concat("\"")
+//                        .concat(callClassName)
+//                        .concat("\",\"")
+//                        .concat(callMethodName)
+//                        .concat("\",");
+//        else
+//            registerMethod = registerMethod.concat("\"")
+//                    .concat(callClassName)
+//                    .concat("\",\"")
+//                    .concat(callMethodName)
+//                    .concat("\",");
+//        registerMethod = registerMethod.concat("Session.class,");
+//
+//        if(isAsset)
+//            registerMethod = registerMethod
+//                    .concat("PianaAssetResolver.class,");
+//        registerMethod = registerMethod.concat(
+//                "Map.class");
+//        sb.append(registerMethod);
+//        sb.append(");\n");
+//
+//        if(isAsset)
+//            sb.append(
+//                    "response = invokeMethod(m, session, assetResolver,");
+//        else
+//            sb.append("response = invokeMethod(m, session,");
+//        if(routeConfig.isUrlInjected())
+//            sb.append("createParameters(uriInfo,\""
+//                    .concat(urlPattern)
+//                    .concat("\",\"")
+//                    .concat(methodPattern)
+//                    .concat("\"),"));
+//        else
+//            sb.append("createParameters(uriInfo),");
+//
+//        String bodyJsonObjectName = UtilityClass
+//                .fetchConsumeObjectName(
+//                        routeConfig);
+//        if(bodyJsonObjectName != null) {
+//            sb.append(bodyJsonObjectName.concat(","));
+//        }
+//        sb.deleteCharAt(sb.length() - 1);
+//        String excName = "exc_".concat(getRandomName(16));
+//        sb.append(");\n} catch (Exception ".concat(excName).concat(") {\n"));
+//        sb.append("System.out.println(".concat(excName).concat(".getMessage());\n"));
+//        sb.append("logger.error(".concat(excName).concat(");\n"));
+//        sb.append("response = internalServerErrorPianaResponse;\n}\n");
+//        sb.append("return createResponse(response, session, httpHeaders);\n");
+//        sb.append("}\n");
+//    }
+
     static void appendRouteMethod(
             String urlPattern,
             String methodPattern,
@@ -152,6 +315,7 @@ public class RouteClassGeneratorEx {
         //check if is asset must be have 0 or 1 path param
         boolean isAsset = UtilityClass
                 .checkMethodCorrection(routeConfig);
+        boolean isAsync = routeConfig.isAsync();
 
         String httpMethod = UtilityClass
                 .fetchHttpMethod(methodPattern);
@@ -162,7 +326,6 @@ public class RouteClassGeneratorEx {
 
         //@GET or @POST or @DELETE or ...
         sb.append("@".concat(httpMethod).concat("\n"));
-
 
         //@Path({path-param}/{path-param})
         if(pathParamList != null) {
@@ -180,119 +343,275 @@ public class RouteClassGeneratorEx {
         }
 
         //add method signature
-        String methodSignature = UtilityClass
-                .createMethodSignature(
-                        methodPattern, routeConfig);
-        if(methodSignature != null)
+        String methodSignature = null;
+        if(!routeConfig.isAsync())
+            methodSignature = UtilityClass
+                    .createMethodSignature(
+                            methodPattern, routeConfig);
+        else
+            methodSignature = UtilityClass
+                    .createAsyncMethodSignature(
+                            methodPattern, routeConfig);
+        if (methodSignature != null)
             sb.append(methodSignature);
 
-        RoleType routeRoleType = RoleType.ADMIN;
-        try {
-            routeRoleType = RoleType
-                    .getFromName(routeConfig.getRole());
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
+        if (isAsync) {
+            sb.append("try {\n");
 
-        sb.append("PianaResponse response = unauthorizedPianaResponse;\n");
-        sb.append("Session session = null;\n");
+            ///asset resolver if isAsset true
+            if(isAsset)
+                sb.append("PianaAssetResolver assetResolver = "
+                        .concat("registerAssetResolver(\"")
+                        .concat(methodKey)
+                        .concat("\",\"")
+                        .concat(routeConfig.getAssetPath())
+                        .concat("\");\n"));
 
-        if(isAsset
-                && pathParamList != null
-                && pathParamList.length == 1) {
-            sb.append("System.out.println(\"with param\");\n");
-            sb.append("if(!isAssetExist(\""
-                    .concat(routeConfig.getAssetPath())
-                    .concat("\",")
-                    .concat("uriInfo.getPathParameters().getFirst(\"")
-                    .concat(pathParamList[0].substring(
-                            0, pathParamList[0].indexOf(':')))
-                    .concat("\")")
-                    .concat(")) {\n")
-                    .concat("return createResponse(notFoundResponse(), null, httpHeaders);\n")
-                    .concat("}\n"));
-        } else {
-            sb.append("System.out.println(\"without param\");\n");
-        }
-        if (routeRoleType != RoleType.NEEDLESS) {
-            sb.append("session = doAuthorization(httpHeaders);\n"
-                    .concat("if(!RoleType.")
-                    .concat(routeRoleType.getName())
-                    .concat(".isValid(session.getRoleType()))\n")
-                    .concat("return createResponse(response, session, httpHeaders);\n"));
-        } else
-            sb.append("session = doRevivalSession(httpHeaders);\n");
-
-        sb.append("try {\n");
-        if(isAsset)
-            sb.append("PianaAssetResolver assetResolver = "
-                    .concat("registerAssetResolver(\"")
+            ///start of registerMethod
+            String registerMethod = "Method m = registerMethod(\""
                     .concat(methodKey)
-                    .concat("\",\"")
-                    .concat(routeConfig.getAssetPath())
-                    .concat("\");\n"));
-        String registerMethod = "Method m = registerMethod(\""
-                .concat(methodKey)
-                .concat("\",");
+                    .concat("\",");
 
-        String callClassName = UtilityClass
-                .fetchCallClassName(routeConfig);
-        String callMethodName = UtilityClass
-                .fetchCallMethodName(routeConfig);
-        if(isAsset)
-            if(callClassName == null || callMethodName == null)
-                registerMethod = registerMethod.concat(
-                        "\"ir.piana.dev.server.route.AssetService\",")
-                        .concat("\"getAsset\",");
+            String callClassName = UtilityClass
+                    .fetchCallClassName(routeConfig);
+            String callMethodName = UtilityClass
+                    .fetchCallMethodName(routeConfig);
+            if(isAsset)
+                if(callClassName == null || callMethodName == null)
+                    registerMethod = registerMethod.concat(
+                            "\"ir.piana.dev.server.route.AssetService\",")
+                            .concat("\"getAsset\",");
+                else
+                    registerMethod = registerMethod.concat("\"")
+                            .concat(callClassName)
+                            .concat("\",\"")
+                            .concat(callMethodName)
+                            .concat("\",");
             else
                 registerMethod = registerMethod.concat("\"")
                         .concat(callClassName)
                         .concat("\",\"")
                         .concat(callMethodName)
                         .concat("\",");
-        else
-            registerMethod = registerMethod.concat("\"")
-                    .concat(callClassName)
-                    .concat("\",\"")
-                    .concat(callMethodName)
+            registerMethod = registerMethod.concat("Session.class,");
+
+            if(isAsset)
+                registerMethod = registerMethod
+                        .concat("PianaAssetResolver.class,");
+            registerMethod = registerMethod.concat(
+                    "Map.class");
+            sb.append(registerMethod);
+            sb.append(");\n");
+            ///end of register method
+
+            sb.append("executorService.execute(() -> {\n")
+                    .append("try {\n");
+
+            ///if isAsset true check if asset not exist
+            if(isAsset) {
+                if(pathParamList != null
+                    && pathParamList.length == 1) {
+                    sb.append("if(!isAssetExist(\""
+                        .concat(routeConfig.getAssetPath())
+                        .concat("\",")
+                        .concat("uriInfo.getPathParameters().getFirst(\"")
+                        .concat(pathParamList[0].substring(
+                                0, pathParamList[0].indexOf(':')))
+                        .concat("\")")
+                        .concat(")) {\n")
+                        .concat("asyncResponse.resume(createResponse(notFoundResponse(), null, httpHeaders));\n")
+                        .concat("return;\n")
+                        .concat("}\n"));
+                } else {
+                    sb.append("if(!isAssetExist(\""
+                            .concat(routeConfig.getAssetPath())
+                            .concat("\",")
+                            .concat("\"index.html\")")
+                            .concat(") {\n")
+                            .concat("asyncResponse.resume(createResponse(notFoundResponse(), null, httpHeaders));\n")
+                            .concat("return;\n")
+                            .concat("}\n"));
+                }
+            }
+
+            ///if resource have role type
+            RoleType routeRoleType = RoleType.ADMIN;
+            try {
+                routeRoleType = RoleType
+                        .getFromName(routeConfig.getRole());
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+            }
+            if (routeRoleType != RoleType.NEEDLESS) {
+                sb.append("final Session session = doAuthorization(httpHeaders);\n"
+                        .concat("if(!RoleType.")
+                        .concat(routeRoleType.getName())
+                        .concat(".isValid(session.getRoleType()))\n")
+                        .concat("asyncResponse.resume(createResponse(unauthorizedPianaResponse, session, httpHeaders));\n"));
+            } else
+                sb.append("final Session session = doRevivalSession(httpHeaders);\n");
+            ///end role type
+
+            ///start of invoke method
+            if(isAsset)
+                sb.append(
+                        "PianaResponse response = invokeMethod(m, session, assetResolver,");
+            else
+                sb.append("PianaResponse response = invokeMethod(m, session,");
+            if(routeConfig.isUrlInjected())
+                sb.append("createParameters(uriInfo,\""
+                        .concat(urlPattern)
+                        .concat("\",\"")
+                        .concat(methodPattern)
+                        .concat("\"),"));
+            else
+                sb.append("createParameters(uriInfo),");
+            String bodyJsonObjectName = UtilityClass
+                    .fetchConsumeObjectName(
+                            routeConfig);
+            if(bodyJsonObjectName != null) {
+                sb.append(bodyJsonObjectName.concat(","));
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append(");\n");
+            sb.append("asyncResponse.resume(createResponse(response, session, httpHeaders));\n");
+            ///end of invokeMethod
+            String excName = "exc_".concat(getRandomName(16));
+            sb.append("} catch (Exception ".concat(excName).concat(") {\n"));
+            sb.append("logger.error(".concat(excName).concat(");\n"));
+            sb.append("asyncResponse.resume(internalServerErrorPianaResponse);\n");
+            sb.append("}\n});\n");
+            ///end of executorService
+
+            String excName2 = "exc_".concat(getRandomName(16));
+            sb.append("} catch (Exception ".concat(excName2).concat(") {\n"));
+            sb.append("logger.error(".concat(excName2).concat(");\n"));
+            sb.append("asyncResponse.resume(internalServerErrorPianaResponse);\n");
+            sb.append("}\n");
+        } else {
+            RoleType routeRoleType = RoleType.ADMIN;
+            try {
+                routeRoleType = RoleType
+                        .getFromName(routeConfig.getRole());
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+            }
+
+            sb.append("PianaResponse response = unauthorizedPianaResponse;\n");
+
+            ///if isAsset true check if asset not exist
+            if(isAsset) {
+                if(pathParamList != null
+                    && pathParamList.length == 1) {
+                    sb.append("if(!isAssetExist(\""
+                            .concat(routeConfig.getAssetPath())
+                            .concat("\",")
+                            .concat("uriInfo.getPathParameters().getFirst(\"")
+                            .concat(pathParamList[0].substring(
+                                    0, pathParamList[0].indexOf(':')))
+                            .concat("\")")
+                            .concat(")) {\n")
+                            .concat("return createResponse(notFoundResponse(), null, httpHeaders);\n")
+                            .concat("}\n"));
+                } else {
+                    sb.append("if(!isAssetExist(\""
+                            .concat(routeConfig.getAssetPath())
+                            .concat("\",")
+                            .concat("\"index.html\")")
+                            .concat(") {\n")
+                            .concat("return createResponse(notFoundResponse(), null, httpHeaders);\n")
+                            .concat("}\n"));
+                }
+            }
+
+            if (routeRoleType != RoleType.NEEDLESS) {
+                sb.append("final Session session = doAuthorization(httpHeaders);\n"
+                        .concat("if(!RoleType.")
+                        .concat(routeRoleType.getName())
+                        .concat(".isValid(session.getRoleType()))\n")
+                        .concat("return createResponse(response, session, httpHeaders);\n"));
+            } else
+                sb.append("final Session session = doRevivalSession(httpHeaders);\n");
+
+            sb.append("try {\n");
+
+            ///assetResolver if isAsset is true
+            if(isAsset)
+                sb.append("PianaAssetResolver assetResolver = "
+                        .concat("registerAssetResolver(\"")
+                        .concat(methodKey)
+                        .concat("\",\"")
+                        .concat(routeConfig.getAssetPath())
+                        .concat("\");\n"));
+
+            ///start of register method
+            String registerMethod = "Method m = registerMethod(\""
+                    .concat(methodKey)
                     .concat("\",");
-        registerMethod = registerMethod.concat("Session.class,");
 
-        if(isAsset)
-            registerMethod = registerMethod
-                    .concat("PianaAssetResolver.class,");
-        registerMethod = registerMethod.concat(
-                "Map.class");
-        sb.append(registerMethod);
-        sb.append(");\n");
+            String callClassName = UtilityClass
+                    .fetchCallClassName(routeConfig);
+            String callMethodName = UtilityClass
+                    .fetchCallMethodName(routeConfig);
+            if(isAsset)
+                if(callClassName == null || callMethodName == null)
+                    registerMethod = registerMethod.concat(
+                            "\"ir.piana.dev.server.route.AssetService\",")
+                            .concat("\"getAsset\",");
+                else
+                    registerMethod = registerMethod.concat("\"")
+                            .concat(callClassName)
+                            .concat("\",\"")
+                            .concat(callMethodName)
+                            .concat("\",");
+            else
+                registerMethod = registerMethod.concat("\"")
+                        .concat(callClassName)
+                        .concat("\",\"")
+                        .concat(callMethodName)
+                        .concat("\",");
+            registerMethod = registerMethod.concat("Session.class,");
 
-        if(isAsset)
-            sb.append(
-                    "response = invokeMethod(m, session, assetResolver,");
-        else
-            sb.append("response = invokeMethod(m, session,");
-        if(routeConfig.isUrlInjected())
-            sb.append("createParameters(uriInfo,\""
-                    .concat(urlPattern)
-                    .concat("\",\"")
-                    .concat(methodPattern)
-                    .concat("\"),"));
-        else
-            sb.append("createParameters(uriInfo),");
+            if(isAsset)
+                registerMethod = registerMethod
+                        .concat("PianaAssetResolver.class,");
+            registerMethod = registerMethod.concat(
+                    "Map.class");
+            sb.append(registerMethod);
+            sb.append(");\n");
 
-        String bodyJsonObjectName = UtilityClass
-                .fetchConsumeObjectName(
-                        routeConfig);
-        if(bodyJsonObjectName != null) {
-            sb.append(bodyJsonObjectName.concat(","));
+            ///end of register method
+
+            ///start of invoke method
+            if(isAsset)
+                sb.append(
+                        "response = invokeMethod(m, session, assetResolver,");
+            else
+                sb.append("response = invokeMethod(m, session,");
+            if(routeConfig.isUrlInjected())
+                sb.append("createParameters(uriInfo,\""
+                        .concat(urlPattern)
+                        .concat("\",\"")
+                        .concat(methodPattern)
+                        .concat("\"),"));
+            else
+                sb.append("createParameters(uriInfo),");
+            String bodyJsonObjectName = UtilityClass
+                    .fetchConsumeObjectName(
+                            routeConfig);
+            if(bodyJsonObjectName != null) {
+                sb.append(bodyJsonObjectName.concat(","));
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append(");\n");
+            ///end of invokeMethod
+            String excName = "exc_".concat(getRandomName(16));
+            sb.append("} catch (Exception ".concat(excName).concat(") {\n"));
+            sb.append("System.out.println(".concat(excName).concat(".getMessage());\n"));
+            sb.append("logger.error(".concat(excName).concat(");\n"));
+            sb.append("response = internalServerErrorPianaResponse;\n}\n");
+            sb.append("return createResponse(response, session, httpHeaders);\n");
         }
-        sb.deleteCharAt(sb.length() - 1);
-        String excName = "exc_".concat(getRandomName(16));
-        sb.append(");\n} catch (Exception ".concat(excName).concat(") {\n"));
-        sb.append("System.out.println(".concat(excName).concat(".getMessage());\n"));
-        sb.append("logger.error(".concat(excName).concat(");\n"));
-        sb.append("response = internalServerErrorPianaResponse;\n}\n");
-        sb.append("return createResponse(response, session, httpHeaders);\n");
         sb.append("}\n");
     }
 
@@ -524,6 +843,28 @@ public class RouteClassGeneratorEx {
             String signature = "public Response "
                     .concat(methodName)
                     .concat("(@Context HttpHeaders httpHeaders,")
+                    .concat("@Context UriInfo uriInfo");
+
+            //add body object to parameter list
+            String bodyObjectParam = UtilityClass
+                    .createBodyObjectParam(routeConfig);
+            if(bodyObjectParam != null) {
+                signature = signature.concat(",")
+                        .concat(bodyObjectParam);
+            }
+
+            return signature.concat(") throws Exception {\n");
+        }
+
+        public static String createAsyncMethodSignature(
+                String methodPattern,
+                PianaRouteConfig routeConfig)
+                throws Exception {
+            String methodName = getMethodName(methodPattern);
+            String signature = "public void "
+                    .concat(methodName)
+                    .concat("(@Suspended final AsyncResponse asyncResponse,")
+                    .concat("@Context HttpHeaders httpHeaders,")
                     .concat("@Context UriInfo uriInfo");
 
             //add body object to parameter list

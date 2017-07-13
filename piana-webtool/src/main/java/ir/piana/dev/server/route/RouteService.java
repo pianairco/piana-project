@@ -17,6 +17,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,6 +31,9 @@ import java.util.stream.Stream;
 public class RouteService {
     protected Logger logger = Logger
             .getLogger(RouteService.class);
+    protected static ExecutorService executorService =
+            Executors.newFixedThreadPool(256);
+
     @Context
     protected Configuration config;
     protected PianaServerConfig serverConfig = null;

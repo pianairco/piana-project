@@ -2,12 +2,11 @@
   "/": {
     "GET": {
       "asset-path": "./react-client",
-      "asset-path-fake": "./piana-sample/asset-dir",
+      "async": "true",
       "role": "GUEST"
     },
     "GET#file*": {
       "asset-path": "./react-client",
-      "asset-path-fake": "./piana-sample/asset-dir",
       "path-params": ["file:.*"]
     }
   },
@@ -32,6 +31,7 @@
       "handler": "ir.piana.dev.sample.rest.HelloWorldRest.getHelloWorld",
       "path-params": [],
       "query-params": [],
+      "async": "true",
       "role": "GUEST"
     },
     "GET#name": {

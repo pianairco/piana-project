@@ -4,6 +4,7 @@
       "handler": "ir.piana.dev.server.sample.SampleServiceTest.getHelloWorld",
       "path-params": [],
       "query-params": [],
+      "async": "true",
       "role": "NEEDLESS"
     },
     "GET#name": {

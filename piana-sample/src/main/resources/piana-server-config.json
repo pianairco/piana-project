@@ -5,7 +5,6 @@
   "http-base-route": "",
   "rest-filters": [
   ],
-  "output-class-path": "d:/classes",
   "session":{
     "session-name": "PIANA_SESSION",
     "session-cache-size": "500",

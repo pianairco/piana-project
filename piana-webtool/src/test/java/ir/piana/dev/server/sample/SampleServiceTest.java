@@ -87,6 +87,11 @@ public class SampleServiceTest {
     public static PianaResponse getHelloWorld(
             Session session,
             Map<String, List<String>> parameters) {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return new PianaResponse(
                 Status.OK,
                 "Hello World",
@@ -97,6 +102,11 @@ public class SampleServiceTest {
             Session session,
             Map<String, List<String>> parameters
     ) {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return new PianaResponse(Status.OK,
                 "Hello ".concat(parameters.get("name").get(0)),
                 MediaType.TEXT_PLAIN);
@@ -106,6 +116,11 @@ public class SampleServiceTest {
             Session session,
             Map<String, List<String>> parameters
     ) {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return new PianaResponse(Status.OK,
                 parameters.get("message").get(0)
                         .concat(" ")
