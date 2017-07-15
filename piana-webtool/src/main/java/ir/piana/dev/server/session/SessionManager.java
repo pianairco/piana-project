@@ -84,6 +84,12 @@ public class SessionManager {
         return session;
     }
 
+    public Session retrieveSessionIfExist(
+            String sessionKey) throws Exception {
+        return  (Session) cacheProvider
+                        .retrieveIfExist(sessionKey);
+    }
+
     public List<NewCookie> clearOtherCookies(
             Session session,
             HttpHeaders httpHeaders) {
