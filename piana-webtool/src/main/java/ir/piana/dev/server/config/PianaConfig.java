@@ -25,12 +25,18 @@ public class PianaConfig {
         this.jsonNode = jsonNode;
     }
 
+    protected PianaConfig(JsonNode jsonNode, Map<String, Object> configMap) {
+        this.jsonNode = jsonNode;
+        this.configMap = configMap;
+    }
+
     protected String getString(String key) {
         if(configMap == null && jsonNode == null)
             return null;
         else if (jsonNode != null &&
                 jsonNode instanceof ObjectNode) {
-            return jsonNode.get(key).textValue();
+            return jsonNode.get(key) == null ? null :
+                    jsonNode.get(key).textValue();
         } else {
             Object o = configMap.get(key);
             if(o != null && o instanceof String)
@@ -79,19 +85,29 @@ public class PianaConfig {
     protected PianaConfig getPianaConfig(String key) {
         if(configMap == null && jsonNode == null)
             return null;
-        else if(jsonNode != null) {
-            return new PianaConfig(jsonNode);
+        JsonNode newNode = null;
+        if(jsonNode != null) {
+            newNode = jsonNode.get(key);
         }
-        Object o = configMap.get(key);
-        if(o instanceof Map)
-            return new PianaConfig((Map<String, Object>) o);
+        Map<String, Object> newMap = null;
+        if(configMap != null) {
+            Object o = configMap.get(key);
+            if (o != null && o instanceof Map)
+                newMap = (Map<String, Object>) o;
+        }
+        if(newNode != null && newMap != null)
+            return new PianaConfig(newNode, newMap);
+        else if(newNode != null)
+            return new PianaConfig(newNode);
+        else if(newMap != null)
+            return new PianaConfig(newMap);
         return null;
     }
 
     protected void reconfigure(PianaConfig pianaConfig) {
         if(pianaConfig.jsonNode != null)
             this.jsonNode = pianaConfig.jsonNode;
-        else if(pianaConfig != null)
+        if(pianaConfig != null)
             this.configMap = pianaConfig.configMap;
     }
 

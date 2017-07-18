@@ -1,8 +1,14 @@
 package ir.piana.dev.server.route;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import ir.piana.dev.secure.random.SecureRandomMaker;
 import ir.piana.dev.secure.random.SecureRandomType;
 import ir.piana.dev.secure.util.HexConverter;
+import ir.piana.dev.server.config.PianaConfig;
+import ir.piana.dev.server.config.PianaConfigReader;
 import ir.piana.dev.server.config.PianaRouterConfig;
 import ir.piana.dev.server.config.PianaRouterConfig.PianaRouteConfig;
 import ir.piana.dev.server.config.PianaServerConfig;
@@ -58,26 +64,8 @@ public class RouteClassGenerator {
             StringBuilder classSource = createClassSource(
                     routerConfig, urlPattern, className);
 
-            String outputClassPath = serverConfig.getOutputClassPath();
-            if(outputClassPath != null && !outputClassPath.isEmpty()) {
-
-                File directory = new File(outputClassPath);
-                try {
-                    if (!directory.exists()) {
-                        /**
-                         * If you require it to make the
-                         * entire directory path including parents
-                         * use of directory.mkdirs();
-                         * else, use of directory.mkdir();*/
-                        directory.mkdirs();
-                    }
-                    writeClassToFile(directory.getPath(),
-                            className, classSource);
-                } catch (Exception e) {
-                    logger.error("not can make class file " +
-                            "in determined path");
-                }
-            }
+            writeClassToFile(serverConfig.getOutputClassPath(),
+                    className, classSource);
 
             classes.add(registerClass(
                     fullClassName, classSource));
@@ -88,6 +76,32 @@ public class RouteClassGenerator {
         return classes;
     }
 
+    public static Class<?> generateDocumentClass(
+            PianaRouterConfig routerConfig,
+            PianaServerConfig serverConfig)
+            throws Exception {
+        DocumentService.routerConfig = routerConfig;
+        String documentStartUrl = serverConfig.getDocumentStartUrl() == null ?
+                defaultDocumentStartUrl : serverConfig.getDocumentStartUrl();
+
+        Class<?> documentClass = null;
+
+        final String className = getClassName(documentStartUrl);
+        final String fullClassName = packageName
+                .replace('.', '/')
+                .concat("/")
+                .concat(className);
+        StringBuilder classSource = createDocumentClassSource(
+                routerConfig, documentStartUrl, className);
+
+        writeClassToFile(serverConfig.getOutputClassPath(),
+                        className, classSource);
+
+        documentClass = registerClass(
+                fullClassName, classSource);
+        return documentClass;
+    }
+
     static StringBuilder createClassSource(
             PianaRouterConfig routerConfig,
             String urlPattern,
@@ -95,6 +109,8 @@ public class RouteClassGenerator {
     ) throws Exception {
         StringBuilder sb = initializeRouteClass(
                 urlPattern, className);
+        //open class brace
+        sb.append("{\n");
         Set<String> httpMethodPatterns =
                 routerConfig.getHttpMethodPatterns(urlPattern);
         if(httpMethodPatterns != null) {
@@ -112,21 +128,68 @@ public class RouteClassGenerator {
         return sb;
     }
 
+    static StringBuilder createDocumentClassSource(
+            PianaRouterConfig routerConfig,
+            String urlPattern,
+            String className
+    ) throws Exception {
+        StringBuilder sb = initializeRouteClass(
+                urlPattern, className);
+        //open class brace
+        sb.append("{\n");
+        String httpMethodPattern = "GET";
+        StringBuilder routeBuilder = new StringBuilder();
+        routeBuilder.append("{\n")
+                .append("\"handler\": \"ir.piana.dev.server.route.DocumentService.getPianaDocument\",\n")
+                .append("\"path-params\": [],\n")
+                .append("\"query-params\": [],\n")
+                .append("\"role\": \"GUEST\"\n")
+                .append("}");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(routeBuilder.toString());
+        PianaRouteConfig routeConfig = PianaConfigReader.createPianaRouteConfig(jsonNode);
+        sb.append(MethodCreator.getInstance(
+                urlPattern, httpMethodPattern, routeConfig)
+                .createMethod());
+
+        //close class brace
+        sb.append("}");
+        return sb;
+    }
+
     static void writeClassToFile(
             String outputClassPath,
             String className,
             StringBuilder classSource)
             throws Exception {
-        if(outputClassPath == null ||
-                outputClassPath.isEmpty())
-            throw new Exception(
-                    "output class path is null");
-        File f = new File(outputClassPath.concat("/")
-                .concat(className)
-                .concat(".txt"));
-        FileOutputStream fos = new FileOutputStream(f);
-        fos.write(classSource.toString().getBytes());
-        fos.close();
+
+        if(outputClassPath != null && !outputClassPath.isEmpty()) {
+            File directory = new File(outputClassPath);
+            try {
+                if (!directory.exists()) {
+                    /**
+                     * If you require it to make the
+                     * entire directory path including parents
+                     * use of directory.mkdirs();
+                     * else, use of directory.mkdir();*/
+                    directory.mkdirs();
+                }
+                if(outputClassPath == null ||
+                        outputClassPath.isEmpty())
+                    throw new Exception(
+                            "output class path is null");
+                File f = new File(outputClassPath.concat("/")
+                        .concat(className)
+                        .concat(".txt"));
+                FileOutputStream fos = new FileOutputStream(f);
+                fos.write(classSource.toString().getBytes());
+                fos.close();
+            } catch (Exception e) {
+                logger.error("not can make class file " +
+                        "in determined path");
+            }
+        }
     }
 
     static StringBuilder initializeRouteClass(
@@ -151,7 +214,7 @@ public class RouteClassGenerator {
         sb.append("@Singleton\n");
         sb.append("@Path(\"".concat(route).concat("\")\n"));
         sb.append("public class ".concat(className)
-                .concat(" extends RouteService {\n"));
+                .concat(" extends RouteService "));
         return sb;
     }
 

@@ -1,6 +1,7 @@
 package ir.piana.dev.server.route;
 
 import ir.piana.dev.server.asset.PianaAssetResolver;
+import ir.piana.dev.server.config.PianaRouterConfig;
 import ir.piana.dev.server.config.PianaServerConfig;
 import ir.piana.dev.server.response.PianaResponse;
 import ir.piana.dev.server.role.RoleType;
@@ -37,6 +38,7 @@ public class RouteService {
     @Context
     protected Configuration config;
     protected PianaServerConfig serverConfig = null;
+    protected PianaRouterConfig routerConfig = null;
     protected SessionManager sessionManager = null;
     protected Map<String, Method> methodMap =
             new LinkedHashMap<>();
@@ -62,6 +64,9 @@ public class RouteService {
         serverConfig = (PianaServerConfig) config
                 .getProperty(PianaServerConfig
                         .PIANA_SERVER_CONFIG);
+        routerConfig = (PianaRouterConfig) config
+                .getProperty(PianaRouterConfig
+                        .PIANA_ROUTER_CONFIG);
         sessionManager = (SessionManager) config
                 .getProperty(SessionManager
                         .PIANA_SESSION_MANAGER);

@@ -1,5 +1,6 @@
 package ir.piana.dev.server.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -40,6 +41,10 @@ public class PianaRouterConfig
         if (configMap != null)
             return configMap.keySet();
         return null;
+    }
+
+    public JsonNode getJsonNode() {
+        return this.jsonNode;
     }
 
     public PianaRouteConfig getRouteConfig(

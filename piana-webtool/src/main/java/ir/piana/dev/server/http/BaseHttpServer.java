@@ -65,14 +65,19 @@ public abstract class BaseHttpServer {
             logger.error("server is started already.");
             return;
         }
-        Set<Class<?>> classes = RouteClassGenerator
+        Set<Class<?>> routeClasses = RouteClassGenerator
                     .generateRouteClasses(routerConfig, serverConfig);
+
+        Class documentClass = RouteClassGenerator
+                .generateDocumentClass(routerConfig, serverConfig);
+
 //        if(serverConfig.hasDocPath()) {
 //            DocumentResolver.initialize(
 //                    serverConfig.getDocPath());
 //        }
 
-        resourceConfig.registerClasses(classes);
+        resourceConfig.registerClasses(routeClasses);
+        resourceConfig.registerClasses(documentClass);
         resourceConfig.register(CORSFilter.class);
 
         sessionManager = SessionManager
@@ -81,6 +86,9 @@ public abstract class BaseHttpServer {
         httpProperties.put(
                 PianaServerConfig.PIANA_SERVER_CONFIG,
                 serverConfig);
+        httpProperties.put(
+                PianaRouterConfig.PIANA_ROUTER_CONFIG,
+                routerConfig);
         httpProperties.put(
                 SessionManager.PIANA_SESSION_MANAGER,
                 sessionManager);

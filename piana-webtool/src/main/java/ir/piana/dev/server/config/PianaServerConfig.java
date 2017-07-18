@@ -47,7 +47,7 @@ public class PianaServerConfig
     }
 
     public HttpServerType getServerType() {
-        if(configMap == null)
+        if(configMap == null && jsonNode == null)
             return null;
         return HttpServerType.fromName(
                 (String) configMap.get(SERVER_TYPE));
