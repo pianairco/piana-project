@@ -2,6 +2,7 @@ package ir.piana.dev.server.route;
 
 import ir.piana.dev.server.asset.PianaAsset;
 import ir.piana.dev.server.asset.PianaAssetResolver;
+import ir.piana.dev.server.document.DocumentResolver;
 import ir.piana.dev.server.response.PianaResponse;
 import ir.piana.dev.server.session.Session;
 

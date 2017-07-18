@@ -43,9 +43,14 @@ public class RouteService {
     protected Map<String, PianaAssetResolver> assetMap =
             new LinkedHashMap<>();
     protected static PianaAssetResolver pianaAssetResolver = null;
-    protected static PianaResponse unauthorizedPianaResponse =
+    protected static final PianaResponse unauthorizedPianaResponse =
             new PianaResponse(Status.UNAUTHORIZED, null);
-    protected static PianaResponse internalServerErrorPianaResponse =
+    protected static final PianaResponse notFoundPianaResponse =
+            new PianaResponse(Status.NOT_FOUND, "not found asset",
+                    MediaType.TEXT_PLAIN);
+    protected static final PianaResponse notAcceptablePianaResponse =
+            new PianaResponse(Status.NOT_ACCEPTABLE, null);
+    protected static final PianaResponse internalServerErrorPianaResponse =
             new PianaResponse(Status.INTERNAL_SERVER_ERROR, null);
 
     public RouteService() {
@@ -72,6 +77,26 @@ public class RouteService {
                         entry -> entry.getValue()
                 ));
         return collect;
+    }
+
+    protected Map<String, List<String>> createParameters(
+            Map<String, List<String>> parameters) {
+        return parameters;
+    }
+
+    protected Map<String, List<String>> createParameters(
+            Map<String, List<String>> parameters,
+            String urlPattern,
+            String methodPattern) {
+
+        ArrayList<String> urlPatterns = new ArrayList<>();
+        urlPatterns.add(urlPattern);
+        parameters.put("url-pattern", urlPatterns);
+
+        ArrayList<String> methodPatterns = new ArrayList<>();
+        methodPatterns.add(methodPattern);
+        parameters.put("method-pattern", methodPatterns);
+        return parameters;
     }
 
     protected Map<String, List<String>> createParameters(
@@ -169,13 +194,6 @@ public class RouteService {
             resBuilder.cookie(sessionManager
                     .makeSessionCookie(session));
         return resBuilder.build();
-    }
-
-    protected PianaResponse notFoundResponse() {
-        return new PianaResponse(
-                Status.NOT_FOUND,
-                "not found asset",
-                MediaType.TEXT_PLAIN);
     }
 
     protected boolean isAssetExist(String rootPath,

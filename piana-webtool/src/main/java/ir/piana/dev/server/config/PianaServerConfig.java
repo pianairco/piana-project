@@ -4,6 +4,7 @@ import ir.piana.dev.server.http.HttpServerType;
 import org.apache.log4j.Logger;
 
 import javax.ws.rs.core.UriBuilder;
+import java.io.File;
 import java.net.URI;
 import java.util.List;
 
@@ -35,6 +36,10 @@ public class PianaServerConfig
             = "output-class-path";
     public static final String REMOVE_OTHER_COOKIES
             = "remove-other-cookies";
+    public static final String DOC_PATH
+            = "doc-path";
+    public static final String DOCUMENT_START_URL
+            = "document-start-url";
 
     public PianaServerConfig(
             PianaConfig pianaConfig) {
@@ -77,6 +82,28 @@ public class PianaServerConfig
 
     public String getOutputClassPath() {
         return getString(OUTPUT_CLASS_PATH);
+    }
+
+    public String getDocumentStartUrl() {
+        return getString(DOCUMENT_START_URL);
+    }
+
+    public String getDocPath() {
+        return getString(DOC_PATH);
+    }
+
+    public boolean hasDocPath() {
+        if (getString(DOC_PATH) != null) {
+            File file = new File(
+                    getString(DOC_PATH));
+            if (!file.exists()){
+                logger.error("doc path not is correct path.");
+            } else if(!file.isDirectory()) {
+                logger.error("doc path not is a directory.");
+            } else
+                return true;
+        }
+        return false;
     }
 
     public boolean isRemoveOtherCookies() {
