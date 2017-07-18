@@ -2,7 +2,6 @@ package ir.piana.dev.server.route;
 
 import ir.piana.dev.server.asset.PianaAsset;
 import ir.piana.dev.server.asset.PianaAssetResolver;
-import ir.piana.dev.server.document.DocumentResolver;
 import ir.piana.dev.server.response.PianaResponse;
 import ir.piana.dev.server.session.Session;
 
@@ -11,7 +10,6 @@ import javax.ws.rs.core.Response.Status;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Mohammad Rahmati, 5/10/2017 8:46 PM
