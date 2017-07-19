@@ -2,12 +2,9 @@ package ir.piana.dev.server.route;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import ir.piana.dev.secure.random.SecureRandomMaker;
 import ir.piana.dev.secure.random.SecureRandomType;
 import ir.piana.dev.secure.util.HexConverter;
-import ir.piana.dev.server.config.PianaConfig;
 import ir.piana.dev.server.config.PianaConfigReader;
 import ir.piana.dev.server.config.PianaRouterConfig;
 import ir.piana.dev.server.config.PianaRouterConfig.PianaRouteConfig;
@@ -40,7 +37,7 @@ public class RouteClassGenerator {
             throws Exception {
         String documentStartUrl = serverConfig.getDocumentStartUrl() == null ?
                 defaultDocumentStartUrl : serverConfig.getDocumentStartUrl();
-        Set<String> urlPatterns = routerConfig.getUrlPattens();
+        Set<String> urlPatterns = routerConfig.getUrlPatterns();
         Set<Class<?>> classes = new HashSet<>();
 
         boolean setRoot = false;
@@ -76,30 +73,50 @@ public class RouteClassGenerator {
         return classes;
     }
 
-    public static Class<?> generateDocumentClass(
+    public static Set<Class<?>> generateDocumentClasses(
             PianaRouterConfig routerConfig,
             PianaServerConfig serverConfig)
             throws Exception {
         DocumentService.routerConfig = routerConfig;
+        DocumentService.serverConfig = serverConfig;
         String documentStartUrl = serverConfig.getDocumentStartUrl() == null ?
                 defaultDocumentStartUrl : serverConfig.getDocumentStartUrl();
+        DocumentService.documentStartUrl = documentStartUrl;
 
-        Class<?> documentClass = null;
+        Set<Class<?>> documentClasses = new HashSet<>();
 
-        final String className = getClassName(documentStartUrl);
-        final String fullClassName = packageName
+        //add document model class
+        final String documentClassName = getClassName(documentStartUrl);
+        final String fullDocumentClassName = packageName
                 .replace('.', '/')
                 .concat("/")
-                .concat(className);
-        StringBuilder classSource = createDocumentClassSource(
-                routerConfig, documentStartUrl, className);
+                .concat(documentClassName);
+        StringBuilder documentClassSource = createDocumentClassSource(
+                documentStartUrl, documentClassName);
 
         writeClassToFile(serverConfig.getOutputClassPath(),
-                        className, classSource);
+                        documentClassName, documentClassSource);
 
-        documentClass = registerClass(
-                fullClassName, classSource);
-        return documentClass;
+        documentClasses.add(registerClass(
+                fullDocumentClassName, documentClassSource));
+
+        //add json model class
+        final String jsonDocumentClassName = getClassName(documentStartUrl
+                .concat("JsonModel"));
+        final String fullJsonDocumentClassName = packageName
+                .replace('.', '/')
+                .concat("/")
+                .concat(jsonDocumentClassName);
+        StringBuilder jsonDocumentClassSource = createDocumentJsonClassSource(
+                documentStartUrl.concat("/json-model"), jsonDocumentClassName);
+
+        writeClassToFile(serverConfig.getOutputClassPath(),
+                jsonDocumentClassName, jsonDocumentClassSource);
+
+        documentClasses.add(registerClass(
+                fullJsonDocumentClassName, jsonDocumentClassSource));
+
+        return documentClasses;
     }
 
     static StringBuilder createClassSource(
@@ -129,7 +146,6 @@ public class RouteClassGenerator {
     }
 
     static StringBuilder createDocumentClassSource(
-            PianaRouterConfig routerConfig,
             String urlPattern,
             String className
     ) throws Exception {
@@ -137,15 +153,48 @@ public class RouteClassGenerator {
                 urlPattern, className);
         //open class brace
         sb.append("{\n");
+
         String httpMethodPattern = "GET";
+
         StringBuilder routeBuilder = new StringBuilder();
+
         routeBuilder.append("{\n")
                 .append("\"handler\": \"ir.piana.dev.server.route.DocumentService.getPianaDocument\",\n")
                 .append("\"path-params\": [],\n")
                 .append("\"query-params\": [],\n")
                 .append("\"role\": \"GUEST\"\n")
                 .append("}");
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(routeBuilder.toString());
+        PianaRouteConfig routeConfig = PianaConfigReader.createPianaRouteConfig(jsonNode);
+        sb.append(MethodCreator.getInstance(
+                urlPattern, httpMethodPattern, routeConfig)
+                .createMethod());
 
+        //close class brace
+        sb.append("}");
+        return sb;
+    }
+
+    static StringBuilder createDocumentJsonClassSource(
+            String urlPattern,
+            String className
+    ) throws Exception {
+        StringBuilder sb = initializeRouteClass(
+                urlPattern, className);
+        //open class brace
+        sb.append("{\n");
+
+        String httpMethodPattern = "GET";
+
+        StringBuilder routeBuilder = new StringBuilder();
+
+        routeBuilder.append("{\n")
+                .append("\"handler\": \"ir.piana.dev.server.route.DocumentService.getPianaJson\",\n")
+                .append("\"path-params\": [],\n")
+                .append("\"query-params\": [],\n")
+                .append("\"role\": \"GUEST\"\n")
+                .append("}");
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(routeBuilder.toString());
         PianaRouteConfig routeConfig = PianaConfigReader.createPianaRouteConfig(jsonNode);

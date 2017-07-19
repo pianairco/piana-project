@@ -27,7 +27,7 @@ public class PianaRouterConfig
         reconfigure(pianaConfig);
     }
 
-    public Set<String> getUrlPattens() {
+    public Set<String> getUrlPatterns() {
         return configMap.keySet();
     }
 

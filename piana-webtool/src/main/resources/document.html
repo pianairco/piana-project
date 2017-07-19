@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Piana Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.1/css/foundation.min.css" integrity="sha256-itWEYdFWzZPBG78bJOOiQIn06QCgN/F0wMDcC4nOhxY=" crossorigin="anonymous" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- Compressed JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.1/js/foundation.min.js" integrity="sha256-Nd2xznOkrE9HkrAMi4xWy/hXkQraXioBg9iYsBrcFrs=" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        var jsonModel = "{}";
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                jsonModel = JSON.parse(this.responseText);
+                console.log(jsonModel);
+                $.each(jsonModel, function (index, valueObj) {
+                    console.log(index + ' => ' + valueObj);
+                    console.log(valueObj['resourcePath']);
+                    var str = "<div class='medium-6 large-4 cell' style='background-color: blanchedalmond'>";
+                    str += "<p><span style='color: red;margin-right: 2px'>" + valueObj['methodType'] + "</span>" + valueObj['resourcePath'];
+                    $.each(valueObj['pathParams'], function (index, value) {
+                       str += "/{<span style='color: coral'>" + value + "</span>}";
+                    });
+                    if(valueObj['queryParams'] != null) {
+                        str += "?"
+                        $.each(valueObj['queryParams'], function (index, value) {
+                            str += "<span style='color: coral'>" + value + "</span>=value&";
+                        });
+                        str = str.replace(/(\s+)?.$/, '')
+                    }
+                    str += "</p>";
+                    $.each(valueObj['pathParams'], function (index, value) {
+                        str += "<label>" + value +
+                        "<input type='text' id='" + valueObj['idName'] + value +"' placeholder=''>" +
+                        "</label>";
+                    });
+                    $.each(valueObj['queryParams'], function (index, value) {
+                        str += "<label>" + value +
+                                "<input type='text' id='" + valueObj['idName'] + value  + "' placeholder=''>" +
+                                "</label>";
+                    });
+
+                    str += "<button class='button success' onClick='f()'>Call Method</button>"
+                    str += "</div>\n";
+
+                    eval(
+                            "var f = function() {\n" +
+                            "       console.log('Hi');\n" +
+                            "}"
+                    );
+
+                    f();
+
+//                    var f = new Function('console.log("hello");');
+
+                    $("#description").append(str);
+                    $.each(valueObj, function (index, value) {
+//                        console.log(index + ' => ' + value);
+                    });
+                });
+//                document.getElementById("description").innerHTML = docConf.description;
+            }
+        };
+        xhttp.open("GET","@resourcePath@", true);
+        xhttp.send();
+//        $(document).foundation();
+    </script>
+</head>
+<body>
+    <h1>Piana Document</h1>
+    <div id="description" class="grid-x"></div>
+</body>
+</html>

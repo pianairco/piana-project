@@ -68,8 +68,8 @@ public abstract class BaseHttpServer {
         Set<Class<?>> routeClasses = RouteClassGenerator
                     .generateRouteClasses(routerConfig, serverConfig);
 
-        Class documentClass = RouteClassGenerator
-                .generateDocumentClass(routerConfig, serverConfig);
+        Set<Class<?>> documentClasses = RouteClassGenerator
+                .generateDocumentClasses(routerConfig, serverConfig);
 
 //        if(serverConfig.hasDocPath()) {
 //            DocumentResolver.initialize(
@@ -77,7 +77,7 @@ public abstract class BaseHttpServer {
 //        }
 
         resourceConfig.registerClasses(routeClasses);
-        resourceConfig.registerClasses(documentClass);
+        resourceConfig.registerClasses(documentClasses);
         resourceConfig.register(CORSFilter.class);
 
         sessionManager = SessionManager

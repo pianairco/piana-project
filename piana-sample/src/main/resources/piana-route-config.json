@@ -41,7 +41,8 @@
       "handler": "ir.piana.dev.sample.rest.HelloWorldRest.getHelloToName",
       "path-params": ["name"],
       "query-params": [],
-      "async": "true"
+      "async": "true",
+      "role": "ADMIN"
     },
     "GET#name:family": {
       "handler": "ir.piana.dev.sample.rest.HelloWorldRest.getMessageToNameFamily",
