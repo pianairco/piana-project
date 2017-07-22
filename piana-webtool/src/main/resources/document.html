@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Piana Document</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.1/css/foundation.min.css" integrity="sha256-itWEYdFWzZPBG78bJOOiQIn06QCgN/F0wMDcC4nOhxY=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.1/css/foundation.min.css"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <!-- Compressed JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.1/js/foundation.min.js" integrity="sha256-Nd2xznOkrE9HkrAMi4xWy/hXkQraXioBg9iYsBrcFrs=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.1/js/foundation.min.js"></script>
     <script type="text/javascript">
         var jsonModel = "{}";
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
                 jsonModel = JSON.parse(this.responseText);
-                console.log(jsonModel);
+//                console.log(jsonModel);
                 $.each(jsonModel, function (index, valueObj) {
-                    console.log(index + ' => ' + valueObj);
-                    console.log(valueObj['resourcePath']);
-                    var str = "<div class='medium-6 large-4 cell' style='background-color: blanchedalmond'>";
+//                    console.log(index + ' => ' + valueObj);
+//                    console.log(valueObj['resourcePath']);
+                    var str = "<div class='callout' style='background-color: blanchedalmond'>";
                     str += "<p><span style='color: red;margin-right: 2px'>" + valueObj['methodType'] + "</span>" + valueObj['resourcePath'];
                     $.each(valueObj['pathParams'], function (index, value) {
                        str += "/{<span style='color: coral'>" + value + "</span>}";
@@ -41,23 +41,33 @@
                                 "</label>";
                     });
 
-                    str += "<button class='button success' onClick='f()'>Call Method</button>"
+                    str += "<p id='" + valueObj['idName'] + "result'></p>";
+                    str += "<button class='button success' id='" + valueObj['idName'] + "btn'>Call Method</button>";
                     str += "</div>\n";
 
-                    eval(
-                            "var f = function() {\n" +
-                            "       console.log('Hi');\n" +
-                            "}"
-                    );
 
-                    f();
-
-//                    var f = new Function('console.log("hello");');
 
                     $("#description").append(str);
-                    $.each(valueObj, function (index, value) {
-//                        console.log(index + ' => ' + value);
-                    });
+
+                    var str1 = "var f = function() {\n";
+                    if(valueObj['asset'] != null && valueObj['asset'] == true) {
+                        str1 += "var win = window.open('" + valueObj['resourcePath'] + "', '_blank');" +
+                                "if (win) {"+
+                                "    win.focus();"+
+                                "} else {"+
+                                "    alert('Please allow popups for this website');"+
+                                "}";
+                    } else {
+                        str1 += "$.get( '" + valueObj['resourcePath'] + "', function( data ) {" +
+                        "    $( '#" + valueObj['idName'] + "result' ).html( data );" +
+                        "});";
+                    }
+                    str1 += "};\n";
+                    var str2 = "$('#" + valueObj['idName'] + "btn').click(f);"
+                    console.log(str1);
+                    eval(
+                    str1 + str2
+                    );
                 });
 //                document.getElementById("description").innerHTML = docConf.description;
             }

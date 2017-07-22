@@ -96,6 +96,7 @@ public abstract class DocumentResolver {
                 String idName = methodPattern.concat(urlPattern);
                 if(pathParamStrings != null)
                     idName.concat(pathParamStrings);
+                servicesModel.setAsset(routeConfig.isAsset());
                 servicesModel.setIdName(idName.replaceAll("/", "")
                         .replaceAll(":", "").replaceAll("#", "")
                         .replace("-", "").replaceAll("\\*","").toLowerCase());
