@@ -2,6 +2,8 @@
   "server-type": "jetty",
   "http-ip": "localhost",
   "http-port": "8001",
+  "http-doc-ip": "localhost",
+  "http-doc-port": "80",
   "http-base-route": "",
   "doc-path": "./piana-sample/doc-conf",
   "output-class-path": "d:/classes",

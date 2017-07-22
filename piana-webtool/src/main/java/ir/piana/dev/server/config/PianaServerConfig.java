@@ -20,8 +20,9 @@ public class PianaServerConfig
                     PianaServerConfig.class);
     public static final String SERVER_TYPE
             = "server-type";
-    public static final String HTTP_IP
-            = "http-ip";
+    public static final String HTTP_IP = "http-ip";
+    public static final String HTTP_DOC_IP = "http-doc-ip";
+    public static final String HTTP_DOC_PORT = "http-doc-port";
     public static final String HTTP_BASE_ROUTE
             = "http-base-route";
     public static final String HTTP_PORT
@@ -59,6 +60,14 @@ public class PianaServerConfig
 
     public String getPort() {
         return getString(HTTP_PORT);
+    }
+
+    public String getDocumentIP() {
+        return getString(HTTP_DOC_IP);
+    }
+
+    public String getDocumentPort() {
+        return getString(HTTP_DOC_PORT);
     }
 
     public String getBaseRoute() {

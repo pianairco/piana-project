@@ -90,8 +90,8 @@ public abstract class DocumentResolver {
                 }
                 servicesModel.setQueryParams(routeConfig.getQueryParams());
                 servicesModel.setResourcePath("http://"
-                        .concat(serverConfig.getIP()).concat(":")
-                        .concat(serverConfig.getPort())
+                        .concat(serverConfig.getDocumentIP()).concat(":")
+                        .concat(serverConfig.getDocumentPort())
                         .concat(urlPattern));
                 String idName = methodPattern.concat(urlPattern);
                 if(pathParamStrings != null)
