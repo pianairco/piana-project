@@ -46,8 +46,8 @@ public abstract class DocumentResolver {
                     String substring = StringUtils.substring(res, first, second + 1);
                     String removed = StringUtils.remove(substring, "@");
                     res = StringUtils.replace(res, substring, "http://"
-                            .concat(serverConfig.getIP())
-                            .concat(":").concat(serverConfig.getPort())
+                            .concat(serverConfig.getDocumentIP())
+                            .concat(":").concat(serverConfig.getDocumentPort())
                             .concat("/").concat(documentStartUrl)
                             .concat("/json-model"));
                 }
