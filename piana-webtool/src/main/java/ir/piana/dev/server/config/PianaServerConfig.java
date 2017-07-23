@@ -4,6 +4,7 @@ import ir.piana.dev.server.http.HttpServerType;
 import org.apache.log4j.Logger;
 
 import javax.ws.rs.core.UriBuilder;
+import java.io.File;
 import java.net.URI;
 import java.util.List;
 
@@ -19,8 +20,9 @@ public class PianaServerConfig
                     PianaServerConfig.class);
     public static final String SERVER_TYPE
             = "server-type";
-    public static final String HTTP_IP
-            = "http-ip";
+    public static final String HTTP_IP = "http-ip";
+    public static final String HTTP_DOC_IP = "http-doc-ip";
+    public static final String HTTP_DOC_PORT = "http-doc-port";
     public static final String HTTP_BASE_ROUTE
             = "http-base-route";
     public static final String HTTP_PORT
@@ -35,6 +37,10 @@ public class PianaServerConfig
             = "output-class-path";
     public static final String REMOVE_OTHER_COOKIES
             = "remove-other-cookies";
+    public static final String DOC_PATH
+            = "doc-path";
+    public static final String DOCUMENT_START_URL
+            = "document-start-url";
 
     public PianaServerConfig(
             PianaConfig pianaConfig) {
@@ -42,7 +48,7 @@ public class PianaServerConfig
     }
 
     public HttpServerType getServerType() {
-        if(configMap == null)
+        if(configMap == null && jsonNode == null)
             return null;
         return HttpServerType.fromName(
                 (String) configMap.get(SERVER_TYPE));
@@ -54,6 +60,14 @@ public class PianaServerConfig
 
     public String getPort() {
         return getString(HTTP_PORT);
+    }
+
+    public String getDocumentIP() {
+        return getString(HTTP_DOC_IP);
+    }
+
+    public String getDocumentPort() {
+        return getString(HTTP_DOC_PORT);
     }
 
     public String getBaseRoute() {
@@ -77,6 +91,28 @@ public class PianaServerConfig
 
     public String getOutputClassPath() {
         return getString(OUTPUT_CLASS_PATH);
+    }
+
+    public String getDocumentStartUrl() {
+        return getString(DOCUMENT_START_URL);
+    }
+
+    public String getDocPath() {
+        return getString(DOC_PATH);
+    }
+
+    public boolean hasDocPath() {
+        if (getString(DOC_PATH) != null) {
+            File file = new File(
+                    getString(DOC_PATH));
+            if (!file.exists()){
+                logger.error("doc path not is correct path.");
+            } else if(!file.isDirectory()) {
+                logger.error("doc path not is a directory.");
+            } else
+                return true;
+        }
+        return false;
     }
 
     public boolean isRemoveOtherCookies() {

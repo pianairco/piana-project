@@ -1,15 +1,12 @@
 package ir.piana.dev.server.config;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import ir.piana.dev.server.config.PianaRouterConfig.PianaRouteConfig;
 import org.apache.log4j.Logger;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Map;
 
 /**
@@ -57,13 +54,20 @@ public class PianaConfigReader {
         if(inputStream == null)
             throw new Exception("input stream is null");
 
+        BufferedInputStream bis = new BufferedInputStream(inputStream);
+        bis.mark(0);
+//        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+
         PianaConfig pianaConfig =
                 new PianaConfig();
         ObjectMapper objectMapper = new ObjectMapper();
         try {
+            objectMapper.getFactory().disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+            pianaConfig.jsonNode = objectMapper.readTree(bis);
+            bis.reset();
             pianaConfig.configMap = objectMapper
                     .readValue(
-                            inputStream, Map.class);
+                            bis, Map.class);
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
@@ -125,5 +129,16 @@ public class PianaConfigReader {
         PianaServiceConfig config = new PianaServiceConfig(
                     jsonNode);
             return config;
+    }
+
+    public static PianaRouteConfig createPianaRouteConfig(
+            JsonNode jsonNode)
+            throws Exception {
+        if(jsonNode == null)
+            throw new Exception("input json node is null");
+
+        PianaRouteConfig config = new PianaRouteConfig();
+        config.reconfigure(new PianaConfig(jsonNode));
+        return config;
     }
 }

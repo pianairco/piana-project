@@ -6,7 +6,6 @@ import ir.piana.dev.server.config.PianaServerConfig;
 import ir.piana.dev.server.config.PianaServerConfig.PianaSessionConfig;
 import ir.piana.dev.server.filter.response.CORSFilter;
 import ir.piana.dev.server.route.RouteClassGenerator;
-import ir.piana.dev.server.route.RouteClassGeneratorEx;
 import ir.piana.dev.server.session.SessionManager;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -66,10 +65,19 @@ public abstract class BaseHttpServer {
             logger.error("server is started already.");
             return;
         }
-        Set<Class<?>> classes = RouteClassGeneratorEx
-                    .generateRouteClasses(routerConfig,
-                            serverConfig.getOutputClassPath());
-        resourceConfig.registerClasses(classes);
+        Set<Class<?>> routeClasses = RouteClassGenerator
+                    .generateRouteClasses(routerConfig, serverConfig);
+
+        Set<Class<?>> documentClasses = RouteClassGenerator
+                .generateDocumentClasses(routerConfig, serverConfig);
+
+//        if(serverConfig.hasDocPath()) {
+//            DocumentResolver.initialize(
+//                    serverConfig.getDocPath());
+//        }
+
+        resourceConfig.registerClasses(routeClasses);
+        resourceConfig.registerClasses(documentClasses);
         resourceConfig.register(CORSFilter.class);
 
         sessionManager = SessionManager
@@ -78,6 +86,9 @@ public abstract class BaseHttpServer {
         httpProperties.put(
                 PianaServerConfig.PIANA_SERVER_CONFIG,
                 serverConfig);
+        httpProperties.put(
+                PianaRouterConfig.PIANA_ROUTER_CONFIG,
+                routerConfig);
         httpProperties.put(
                 SessionManager.PIANA_SESSION_MANAGER,
                 sessionManager);

@@ -2,8 +2,8 @@
   "/": {
     "GET": {
       "asset-path": "./react-client",
-      "async": "true",
-      "role": "GUEST"
+      "role": "GUEST",
+      "async": "true"
     },
     "GET#file*": {
       "asset-path": "./react-client",
@@ -16,14 +16,17 @@
       "path-params": [],
       "query-params": [],
       "role": "GUEST",
-      "url-injected": "true"
+      "url-injected": "true",
+      "doc-name": "signin.doc.json",
+      "async": "true"
     },
     "POST": {
       "handler": "ir.piana.dev.sample.rest.AuthRest.postUser",
       "path-params": [],
       "query-params": [],
       "body-json-object": "ir.piana.dev.sample.model.UserModel",
-      "role": "GUEST"
+      "role": "GUEST",
+      "async": "true"
     }
   },
   "/hello-world": {
@@ -31,18 +34,21 @@
       "handler": "ir.piana.dev.sample.rest.HelloWorldRest.getHelloWorld",
       "path-params": [],
       "query-params": [],
-      "async": "true",
-      "role": "GUEST"
+      "role": "GUEST",
+      "doc-name": "signin.doc.json"
     },
     "GET#name": {
       "handler": "ir.piana.dev.sample.rest.HelloWorldRest.getHelloToName",
       "path-params": ["name"],
-      "query-params": []
+      "query-params": [],
+      "async": "true",
+      "role": "ADMIN"
     },
     "GET#name:family": {
       "handler": "ir.piana.dev.sample.rest.HelloWorldRest.getMessageToNameFamily",
       "path-params": ["name", "family"],
-      "query-params": ["message"]
+      "query-params": ["message"],
+      "async": "true"
     }
   }
 }

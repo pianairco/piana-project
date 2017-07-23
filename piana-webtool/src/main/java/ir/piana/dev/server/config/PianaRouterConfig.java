@@ -1,5 +1,6 @@
 package ir.piana.dev.server.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -26,7 +27,7 @@ public class PianaRouterConfig
         reconfigure(pianaConfig);
     }
 
-    public Set<String> getUrlPattens() {
+    public Set<String> getUrlPatterns() {
         return configMap.keySet();
     }
 
@@ -40,6 +41,10 @@ public class PianaRouterConfig
         if (configMap != null)
             return configMap.keySet();
         return null;
+    }
+
+    public JsonNode getJsonNode() {
+        return this.jsonNode;
     }
 
     public PianaRouteConfig getRouteConfig(
@@ -77,6 +82,8 @@ public class PianaRouterConfig
                 = "url-injected";
         public static final String ASSET_PATH_CONFIG
                 = "asset-path";
+        public static final String DOC_NAME_CONFIG
+                = "doc-name";
 
         public String getHandler() {
             return getString(HANDLER_CONFIG);
@@ -122,6 +129,19 @@ public class PianaRouterConfig
                     logger.error("asset path not is a directory.");
                 } else
                     return true;
+            }
+            return false;
+        }
+
+        public String getDocName() {
+            if(getString(DOC_NAME_CONFIG) == null)
+                return "";
+            return getString(DOC_NAME_CONFIG);
+        }
+
+        public boolean hasDocName() {
+            if (getString(DOC_NAME_CONFIG) != null) {
+                return true;
             }
             return false;
         }

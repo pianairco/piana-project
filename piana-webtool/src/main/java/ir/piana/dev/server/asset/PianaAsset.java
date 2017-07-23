@@ -30,8 +30,12 @@ public class PianaAsset {
         this.relativePath = relativePath;
         this.rootPath = rootPath;
         this.mediaType = mediaType;
-        this.path = rootPath.concat(File.pathSeparator)
-                .concat(relativePath);
+        try {
+            this.path = rootPath.concat(File.pathSeparator)
+                    .concat(relativePath);
+        } catch (Exception e) {
+            this.path = null;
+        }
     }
 
     public byte[] getBytes() {

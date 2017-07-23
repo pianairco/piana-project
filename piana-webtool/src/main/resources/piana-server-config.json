@@ -6,6 +6,7 @@
   "rest-filters": [
   ],
   "remove-other-cookies": "true",
+  "doc-path": "D:/git-project/piana-project/piana-webtool/src/main/resources",
   "session":{
     "session-name": "PIANA_SESSION",
     "session-cache-size": "500",

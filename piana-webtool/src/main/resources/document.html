@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Piana Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.1/css/foundation.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- Compressed JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.1/js/foundation.min.js"></script>
+    <script type="text/javascript">
+        var jsonModel = "{}";
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                jsonModel = JSON.parse(this.responseText);
+//                console.log(jsonModel);
+                $.each(jsonModel, function (index, valueObj) {
+//                    console.log(index + ' => ' + valueObj);
+//                    console.log(valueObj['resourcePath']);
+                    var str = "<div class='callout' style='background-color: blanchedalmond'>";
+                    str += "<p><span style='color: red;margin-right: 2px'>" + valueObj['methodType'] + "</span>" + valueObj['resourcePath'];
+                    $.each(valueObj['pathParams'], function (index, value) {
+                       str += "/{<span style='color: coral'>" + value + "</span>}";
+                    });
+                    if(valueObj['queryParams'] != null) {
+                        str += "?"
+                        $.each(valueObj['queryParams'], function (index, value) {
+                            str += "<span style='color: coral'>" + value + "</span>=value&";
+                        });
+                        str = str.replace(/(\s+)?.$/, '')
+                    }
+                    str += "</p>";
+                    $.each(valueObj['pathParams'], function (index, value) {
+                        str += "<label>" + value +
+                        "<input type='text' id='" + valueObj['idName'] + value +"' placeholder=''>" +
+                        "</label>";
+                    });
+                    $.each(valueObj['queryParams'], function (index, value) {
+                        str += "<label>" + value +
+                                "<input type='text' id='" + valueObj['idName'] + value  + "' placeholder=''>" +
+                                "</label>";
+                    });
+
+                    str += "<p id='" + valueObj['idName'] + "result'></p>";
+                    str += "<button class='button success' id='" + valueObj['idName'] + "btn'>Call Method</button>";
+                    str += "</div>\n";
+
+
+
+                    $("#description").append(str);
+
+                    var str1 = "var f = function() {\n";
+                    if(valueObj['asset'] != null && valueObj['asset'] == true) {
+                        str1 += "var win = window.open('" + valueObj['resourcePath'] + "', '_blank');" +
+                                "if (win) {"+
+                                "    win.focus();"+
+                                "} else {"+
+                                "    alert('Please allow popups for this website');"+
+                                "}";
+                    } else {
+                        str1 += "$.get( '" + valueObj['resourcePath'] + "', function( data ) {" +
+                        "    $( '#" + valueObj['idName'] + "result' ).html( data );" +
+                        "});";
+                    }
+                    str1 += "};\n";
+                    var str2 = "$('#" + valueObj['idName'] + "btn').click(f);"
+                    console.log(str1);
+                    eval(
+                    str1 + str2
+                    );
+                });
+//                document.getElementById("description").innerHTML = docConf.description;
+            }
+        };
+        xhttp.open("GET","@resourcePath@", true);
+        xhttp.send();
+//        $(document).foundation();
+    </script>
+</head>
+<body>
+    <h1>Piana Document</h1>
+    <div id="description" class="grid-x"></div>
+</body>
+</html>
