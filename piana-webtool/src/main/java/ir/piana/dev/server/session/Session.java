@@ -4,8 +4,6 @@ import ir.piana.dev.secure.crypto.CryptoAttribute;
 import ir.piana.dev.secure.crypto.CryptoMaker;
 import ir.piana.dev.server.role.RoleType;
 
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.NewCookie;
 import java.security.KeyPair;
 import java.util.*;
 
@@ -17,7 +15,8 @@ public class Session {
     private KeyPair keyPair;
     private RoleType roleType;
     private String sessionKey;
-    private Map<String, String> sessionMap;
+    private Map<String, String> stringMap;
+    private Map<String, Object> objectMap;
 
     Session(String sessionName,
             KeyPair keyPair,
@@ -33,7 +32,8 @@ public class Session {
         this.keyPair = keyPair;
         this.roleType = roleType;
         this.sessionKey = sessionKey;
-        this.sessionMap = new LinkedHashMap<>();
+        this.stringMap = new LinkedHashMap<>();
+        this.objectMap = new LinkedHashMap<>();
     }
 
     public KeyPair getKeyPair() {
@@ -64,20 +64,36 @@ public class Session {
         return keyPair.getPublic().getEncoded();
     }
 
-    public void set(String key, String value) {
-        this.sessionMap.put(key, value);
+    public void setString(String key, String value) {
+        this.stringMap.put(key, value);
     }
 
-    public String get(String key) {
-        return this.sessionMap.get(key);
+    public String getString(String key) {
+        return this.stringMap.get(key);
     }
 
-    public String remove(String key) {
-        return this.sessionMap.remove(key);
+    public String removeString(String key) {
+        return this.stringMap.remove(key);
     }
 
-    public void clear() {
-        this.sessionMap.clear();
+    public void clearString() {
+        this.stringMap.clear();
+    }
+
+    public void setObject(String key, Object value) {
+        this.objectMap.put(key, value);
+    }
+
+    public Object getObject(String key) {
+        return this.objectMap.get(key);
+    }
+
+    public Object removeObject(String key) {
+        return this.objectMap.remove(key);
+    }
+
+    public void clearObject() {
+        this.objectMap.clear();
     }
 
     public byte[] decrypt(byte[] rawMessage)
