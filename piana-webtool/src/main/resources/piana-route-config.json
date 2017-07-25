@@ -1,6 +1,6 @@
 {
   "/piana-project": {
-    "GET": {
+    "GET#file*": {
       "asset-path": "./piana-webtool/src/main/java/resources"
     }
   },

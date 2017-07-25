@@ -15,6 +15,7 @@ import java.util.Map;
  * @author Mohammad Rahmati, 5/10/2017 8:46 PM
  */
 class AssetService {
+    //called if path is null or empty
     public static PianaResponse getAsset(
             Session session,
             PianaAssetResolver assetResolver) {
@@ -31,48 +32,23 @@ class AssetService {
                 asset.getMediaType());
     }
 
+    //called at all condition
     public static PianaResponse getAsset(
             Session session,
             PianaAssetResolver assetResolver,
             Map<String, List<String>> map) {
-        if(!map.isEmpty())
+        String path = null;
+        if(map != null && !map.isEmpty() && (path = map.get(map.keySet().toArray()[0]).get(0)) != null)
             return getAsset(session,
                     assetResolver,
-                    map.get(map.keySet().toArray()[0]).get(0),
+                    path,
                     map);
-        PianaAsset asset = null;
-        try {
-            asset = assetResolver
-                    .resolve("index.html");
-        } catch (Exception e) {
-            return notFoundResponse();
-        }
-        return new PianaResponse(
-                Status.OK,
-                asset.getBytes(),
-                asset.getMediaType());
-    }
-
-    public static PianaResponse getAsset(
-            Session session,
-            PianaAssetResolver assetResolver,
-            String path) {
-        if(path == null || path.isEmpty())
+        else {
             return getAsset(session, assetResolver);
-        PianaAsset asset = null;
-        try {
-            asset = assetResolver
-                    .resolve(path);
-        } catch (Exception e) {
-            return notFoundResponse();
         }
-        return new PianaResponse(
-                Status.OK,
-                asset.getBytes(),
-                asset.getMediaType(),
-                Charset.forName("UTF-8"));
     }
 
+    //called if path is exist
     public static PianaResponse getAsset(
             Session session,
             PianaAssetResolver assetResolver,

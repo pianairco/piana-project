@@ -1,13 +1,7 @@
 {
   "/": {
-    "GET": {
-      "asset-path": "./react-client",
-      "role": "GUEST",
-      "async": "true"
-    },
     "GET#file*": {
-      "asset-path": "./react-client",
-      "path-params": ["file:.*"]
+      "asset-path": "./react-client"
     }
   },
   "/auth": {
