@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.lang.reflect.Method;
@@ -50,7 +51,7 @@ public class RouteService {
     protected static final PianaResponse unauthorizedPianaResponse =
             new PianaResponse(Status.UNAUTHORIZED, null);
     protected static final PianaResponse notFoundPianaResponse =
-            new PianaResponse(Status.NOT_FOUND, "not found asset",
+            new PianaResponse(Status.NOT_FOUND, 0, "not found asset",
                     MediaType.TEXT_PLAIN);
     protected static final PianaResponse notAcceptablePianaResponse =
             new PianaResponse(Status.NOT_ACCEPTABLE, null);
@@ -183,16 +184,29 @@ public class RouteService {
             HttpHeaders httpHeaders) {
 //        NewCookie sessionCookie = sessionManager
 //                .makeSessionCookie(session);
-        Response.ResponseBuilder resBuilder = Response
+        ResponseBuilder resBuilder = Response
                 .status(
-                        pianaResponse.getResponseStatus())
-                .entity(pianaResponse.getEntity())
-                .header("Content-Type",
-                        pianaResponse.getMediaType()
-                                .concat("; charset=")
-                                .concat(pianaResponse
-                                        .getCharset()
-                                        .displayName()));
+                        pianaResponse.getResponseStatus());
+        if(pianaResponse.getStatus() != 0) {
+            resBuilder.entity(new ResponseByStatus(
+                    pianaResponse.getStatus(),
+                    pianaResponse.getEntity()))
+                    .header("Content-Type",
+                            MediaType.APPLICATION_JSON
+                                    .concat("; charset=")
+                                    .concat(pianaResponse
+                                            .getCharset()
+                                            .displayName()));
+        }
+        else {
+            resBuilder.entity(pianaResponse.getEntity())
+                    .header("Content-Type",
+                            pianaResponse.getMediaType()
+                                    .concat("; charset=")
+                                    .concat(pianaResponse
+                                            .getCharset()
+                                            .displayName()));
+        }
         if(serverConfig.isRemoveOtherCookies())
             resBuilder.cookie(sessionManager
                     .removeOtherCookies(
@@ -207,5 +221,23 @@ public class RouteService {
                                    String relativePath) {
         File file = new File(rootPath, relativePath);
         return file.exists();
+    }
+
+    private static class ResponseByStatus {
+        private int status;
+        private Object entity;
+
+        public ResponseByStatus(int status, Object entity) {
+            this.status = status;
+            this.entity = entity;
+        }
+
+        public int getStatus() {
+            return status;
+        }
+
+        public Object getEntity() {
+            return entity;
+        }
     }
 }

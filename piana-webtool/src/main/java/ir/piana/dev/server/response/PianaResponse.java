@@ -9,12 +9,14 @@ import java.nio.charset.Charset;
  */
 public class PianaResponse {
     private Status responseStatus;
+    private int status;
     private Object entity;
     private String mediaType;
     private Charset charset;
 
     public PianaResponse() {
         this(Status.NO_CONTENT,
+                0,
                 null,
                 MediaType.APPLICATION_JSON,
                 Charset.forName("ASCII"));
@@ -22,25 +24,37 @@ public class PianaResponse {
 
     public PianaResponse(Status responseStatus,
                          Object entity) {
-        this(responseStatus, entity,
+        this(responseStatus, 0, entity,
                 MediaType.APPLICATION_JSON,
                 Charset.forName("ASCII"));
     }
 
     public PianaResponse(Status responseStatus,
+                         int status,
+                         Object entity) {
+        this(responseStatus, status, entity,
+                MediaType.APPLICATION_JSON,
+                Charset.forName("ASCII"));
+    }
+
+    public PianaResponse(Status responseStatus,
+                         int status,
                          Object entity,
                          String mediaType) {
         this(responseStatus,
+                status,
                 entity,
                 mediaType,
                 Charset.forName("ASCII"));
     }
 
     public PianaResponse(Status responseStatus,
+                         int status,
                          Object entity,
                          String mediaType,
                          Charset charset) {
         this.responseStatus = responseStatus;
+        this.status = status;
         this.entity = entity;
         this.mediaType = mediaType;
         this.charset = charset;
@@ -76,5 +90,13 @@ public class PianaResponse {
 
     public void setCharset(Charset charset) {
         this.charset = charset;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 }

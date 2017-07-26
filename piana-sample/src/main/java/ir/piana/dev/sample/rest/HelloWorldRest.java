@@ -21,7 +21,7 @@ public class HelloWorldRest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return new PianaResponse(Response.Status.OK,
+        return new PianaResponse(Response.Status.OK, 1,
                 "Hello World!",
                 MediaType.TEXT_PLAIN);
     }
@@ -34,7 +34,7 @@ public class HelloWorldRest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return new PianaResponse(Response.Status.OK,
+        return new PianaResponse(Response.Status.OK, 1,
                 "Hello World!",
                 MediaType.TEXT_PLAIN);
     }
@@ -42,7 +42,7 @@ public class HelloWorldRest {
     public static PianaResponse getHelloToName(
             Session session,
             String name) {
-        return new PianaResponse(Response.Status.OK,
+        return new PianaResponse(Response.Status.OK, 1,
                 "Hello ".concat(name),
                 MediaType.TEXT_PLAIN);
     }
@@ -55,7 +55,7 @@ public class HelloWorldRest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return new PianaResponse(Response.Status.OK,
+        return new PianaResponse(Response.Status.OK, 1,
                 "Hello ".concat(mapParams.get("name").get(0)),
                 MediaType.TEXT_PLAIN);
     }
@@ -64,7 +64,7 @@ public class HelloWorldRest {
             Session session,
             String name, String family,
             String message) {
-        return new PianaResponse(Response.Status.OK,
+        return new PianaResponse(Response.Status.OK, 1,
                 message.concat(" ")
                         .concat(name)
                         .concat(" ")
@@ -76,7 +76,7 @@ public class HelloWorldRest {
             Session session,
             Map<String, List<String>> mapParams) {
         MultivaluedMap d = new MultivaluedHashMap(mapParams);
-        return new PianaResponse(Response.Status.OK,
+        return new PianaResponse(Response.Status.OK, 1,
                 mapParams.get("message").get(0)
                         .concat(" ")
                         .concat(mapParams.get("name").get(0))

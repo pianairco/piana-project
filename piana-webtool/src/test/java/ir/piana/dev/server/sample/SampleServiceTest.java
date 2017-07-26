@@ -94,6 +94,7 @@ public class SampleServiceTest {
         }
         return new PianaResponse(
                 Status.OK,
+                0,
                 "Hello World",
                 MediaType.TEXT_PLAIN);
     }
@@ -108,6 +109,7 @@ public class SampleServiceTest {
             e.printStackTrace();
         }
         return new PianaResponse(Status.OK,
+                0,
                 "Hello ".concat(parameters.get("name").get(0)),
                 MediaType.TEXT_PLAIN);
     }
@@ -122,6 +124,7 @@ public class SampleServiceTest {
             e.printStackTrace();
         }
         return new PianaResponse(Status.OK,
+                0,
                 parameters.get("message").get(0)
                         .concat(" ")
                         .concat(parameters.get("name").get(0))

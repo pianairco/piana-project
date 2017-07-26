@@ -21,7 +21,7 @@ public class AuthRest {
         session.setRoleType(RoleType.ADMIN);
         System.out.println(userModel.getUserName());
         System.out.println(userModel.getUserPass());
-        return new PianaResponse(Response.Status.OK,
+        return new PianaResponse(Response.Status.OK, 1,
                 userModel,
                 MediaType.APPLICATION_JSON,
                 Charset.forName("UTF-8"));
@@ -33,7 +33,7 @@ public class AuthRest {
             UserModel userModel) {
         System.out.println(userModel.getUserName());
         System.out.println(userModel.getUserPass());
-        return new PianaResponse(Response.Status.OK,
+        return new PianaResponse(Response.Status.OK, 1,
                 userModel,
                 MediaType.APPLICATION_JSON,
                 Charset.forName("UTF-8"));
@@ -43,7 +43,7 @@ public class AuthRest {
             Session session,
             Map<String, List<String>> mapParams) {
         session.setRoleType(RoleType.ADMIN);
-        return new PianaResponse(Response.Status.OK,
+        return new PianaResponse(Response.Status.OK, 1,
                 "get user",
                 MediaType.TEXT_PLAIN,
                 Charset.forName("UTF-8"));

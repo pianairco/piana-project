@@ -31,7 +31,7 @@ class DocumentService {
             return notFoundResponse();
         }
         return new PianaResponse(
-                Response.Status.OK,
+                Response.Status.OK, 0,
                 asset.getBytes(),
                 MediaType.TEXT_HTML);
     }
@@ -47,14 +47,14 @@ class DocumentService {
             return notFoundResponse();
         }
         return new PianaResponse(
-                Response.Status.OK,
+                Response.Status.OK, 0,
                 asset.getBytes(),
                 MediaType.APPLICATION_JSON);
     }
 
     protected static PianaResponse notFoundResponse() {
         return new PianaResponse(
-                Response.Status.NOT_FOUND,
+                Response.Status.NOT_FOUND, 0,
                 "not found asset",
                 MediaType.TEXT_PLAIN);
     }
