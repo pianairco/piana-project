@@ -11,7 +11,6 @@
       "query-params": [],
       "role": "GUEST",
       "url-injected": "true",
-      "doc-name": "signin.doc.json",
       "async": "true"
     },
     "POST": {
@@ -28,8 +27,7 @@
       "handler": "ir.piana.dev.sample.rest.HelloWorldRest.getHelloWorld",
       "path-params": [],
       "query-params": [],
-      "role": "GUEST",
-      "doc-name": "signin.doc.json"
+      "role": "GUEST"
     },
     "GET#name": {
       "handler": "ir.piana.dev.sample.rest.HelloWorldRest.getHelloToName",

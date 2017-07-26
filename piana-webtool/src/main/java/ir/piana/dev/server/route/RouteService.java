@@ -45,6 +45,8 @@ public class RouteService {
     protected Map<String, PianaAssetResolver> assetMap =
             new LinkedHashMap<>();
     protected static PianaAssetResolver pianaAssetResolver = null;
+    protected static final PianaResponse forbiddenPianaResponse =
+            new PianaResponse(Status.FORBIDDEN, null);
     protected static final PianaResponse unauthorizedPianaResponse =
             new PianaResponse(Status.UNAUTHORIZED, null);
     protected static final PianaResponse notFoundPianaResponse =

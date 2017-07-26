@@ -230,7 +230,7 @@ public class RouteClassGenerator {
                             "output class path is null");
                 File f = new File(outputClassPath.concat("/")
                         .concat(className)
-                        .concat(".txt"));
+                        .concat(".java"));
                 FileOutputStream fos = new FileOutputStream(f);
                 fos.write(classSource.toString().getBytes());
                 fos.close();

@@ -22,21 +22,56 @@ public abstract class MethodCreator {
     protected final String methodPattern;
     protected final String httpMethod;
     protected PianaRouteConfig routeConfig;
+    protected ForbiddenCheckable forbiddenCheckable;
     protected String methodKey;
     protected StringBuilder sb;
     protected String[] pathParamList;
 
     private MethodCreator(String urlPattern,
                           String methodPattern,
-                          PianaRouteConfig routeConfig) {
+                          PianaRouteConfig routeConfig,
+                          ForbiddenCheckable forbiddenCheckable) {
         this.urlPattern = urlPattern;
         this.methodPattern = methodPattern;
         this.routeConfig = routeConfig;
+        this.forbiddenCheckable = forbiddenCheckable;
         this.httpMethod = fetchHttpMethod();
         this.pathParamList = fetchPathParamList();
         methodKey = urlPattern
                 .concat(methodPattern);
         sb = new StringBuilder();
+    }
+
+    protected static String checkForbiddenForSync(RoleType routeRoleType) {
+        StringBuilder sb = new StringBuilder();
+        if (routeRoleType != RoleType.NEEDLESS) {
+            sb.append("final Session session = doAuthorization(httpHeaders);\n");
+            sb.append("if(session != null && session.isWrongdoer())\n"
+                    .concat("return createResponse(forbiddenPianaResponse, session, httpHeaders);\n"));
+        } else {
+            sb.append("final Session session = doRevivalSession(httpHeaders);\n");
+            sb.append("if(session != null && session.isWrongdoer())\n"
+                    .concat("return createResponse(forbiddenPianaResponse, session, httpHeaders);\n"));
+        }
+        return sb.toString();
+    }
+
+    protected static String checkForbiddenForAsync(RoleType routeRoleType) {
+        StringBuilder sb = new StringBuilder();
+        if (routeRoleType != RoleType.NEEDLESS) {
+            sb.append("final Session session = doAuthorization(httpHeaders);\n");
+            sb.append("if(session != null && session.isWrongdoer()) {\n"
+                    .concat("asyncResponse.resume(createResponse(forbiddenPianaResponse, session, httpHeaders));\n")
+                    .concat("return;\n")
+                    .concat("}\n"));
+        } else {
+            sb.append("final Session session = doRevivalSession(httpHeaders);\n");
+            sb.append("if(session != null && session.isWrongdoer()) {\n"
+                    .concat("asyncResponse.resume(createResponse(forbiddenPianaResponse, session, httpHeaders));\n")
+                    .concat("return;\n")
+                    .concat("}\n"));
+        }
+        return sb.toString();
     }
 
     public String createMethod()
@@ -61,7 +96,15 @@ public abstract class MethodCreator {
         //open method body
         sb.append("{\n");
 
-        sb.append(getMethodBody());
+        RoleType routeRoleType = RoleType.ADMIN;
+        try {
+            routeRoleType = RoleType
+                    .getFromName(routeConfig.getRole());
+        } catch (Exception e) {
+            logger.error("SyncHandler:".concat(e.getMessage()));
+        }
+
+        sb.append(getMethodBody(routeRoleType));
 
         //close method body
         sb.append("}\n");
@@ -71,7 +114,7 @@ public abstract class MethodCreator {
 
     protected abstract String getMethodSignature() throws Exception;
 
-    protected abstract String getMethodBody() throws Exception;
+    protected abstract String getMethodBody(RoleType routeRoleType) throws Exception;
 
     // ---------------------- utility classes ---------------------------
 
@@ -280,6 +323,10 @@ public abstract class MethodCreator {
 
     // -------------------------- factory --------------------------------
 
+    private interface ForbiddenCheckable {
+        String checkForbidden(RoleType roleType);
+    }
+
     public static MethodCreator getInstance(String urlPattern,
                                             String methodPattern,
                                             PianaRouteConfig routeConfig)
@@ -290,13 +337,13 @@ public abstract class MethodCreator {
         boolean isAsync = routeConfig.isAsync();
 
         if(isAsync && isAsset)
-            methodCreator = new ASyncAsset(urlPattern, methodPattern, routeConfig);
+            methodCreator = new ASyncAsset(urlPattern, methodPattern, routeConfig, MethodCreator::checkForbiddenForAsync);
         else if(isAsync && !isAsset)
-            methodCreator = new ASyncHandler(urlPattern, methodPattern, routeConfig);
+            methodCreator = new ASyncHandler(urlPattern, methodPattern, routeConfig, MethodCreator::checkForbiddenForAsync);
         else if(!isAsync && isAsset)
-            methodCreator = new SyncAsset(urlPattern, methodPattern, routeConfig);
+            methodCreator = new SyncAsset(urlPattern, methodPattern, routeConfig, MethodCreator::checkForbiddenForSync);
         else if(!isAsync && !isAsset)
-            methodCreator = new SyncHandler(urlPattern, methodPattern, routeConfig);
+            methodCreator = new SyncHandler(urlPattern, methodPattern, routeConfig, MethodCreator::checkForbiddenForSync);
 
         return methodCreator;
     }
@@ -304,9 +351,11 @@ public abstract class MethodCreator {
     // -------------------------- sub classes ----------------------------
 
     private static class SyncHandler extends MethodCreator {
-        private SyncHandler(String urlPattern, String methodPattern,
-                            PianaRouteConfig routeConfig) {
-            super(urlPattern, methodPattern, routeConfig);
+        private SyncHandler(String urlPattern,
+                            String methodPattern,
+                            PianaRouteConfig routeConfig,
+                            ForbiddenCheckable forbiddenCheckable) {
+            super(urlPattern, methodPattern, routeConfig, forbiddenCheckable);
         }
 
         @Override
@@ -316,28 +365,19 @@ public abstract class MethodCreator {
         }
 
         @Override
-        protected String getMethodBody()
+        protected String getMethodBody(RoleType routeRoleType)
                 throws Exception {
-            StringBuilder sb = new StringBuilder();
-            RoleType routeRoleType = RoleType.ADMIN;
-            try {
-                routeRoleType = RoleType
-                        .getFromName(routeConfig.getRole());
-            } catch (Exception e) {
-                logger.error("SyncHandler:".concat(e.getMessage()));
-            }
+            StringBuilder sb = new StringBuilder(forbiddenCheckable.checkForbidden(routeRoleType));
+//            else
+//                sb.append("final Session session = doRevivalSession(httpHeaders);\n");
 
+            sb.append("try {\n");
             if (routeRoleType != RoleType.NEEDLESS) {
-                sb.append("final Session session = doAuthorization(httpHeaders);\n"
-                        .concat("if(!RoleType.")
+                sb.append("if(!RoleType."
                         .concat(routeRoleType.getName())
                         .concat(".isValid(session.getRoleType()))\n")
                         .concat("return createResponse(unauthorizedPianaResponse, session, httpHeaders);\n"));
-            } else
-                sb.append("final Session session = doRevivalSession(httpHeaders);\n");
-
-            sb.append("try {\n");
-
+            }
             ///start of register method
             String registerMethod = "Method m = registerMethod(\""
                     .concat(methodKey)
@@ -390,9 +430,11 @@ public abstract class MethodCreator {
     }
 
     private static class ASyncHandler extends MethodCreator {
-        private ASyncHandler(String urlPattern, String methodPattern,
-                             PianaRouteConfig routeConfig) {
-            super(urlPattern, methodPattern, routeConfig);
+        private ASyncHandler(String urlPattern,
+                             String methodPattern,
+                             PianaRouteConfig routeConfig,
+                             ForbiddenCheckable forbiddenCheckable) {
+            super(urlPattern, methodPattern, routeConfig, forbiddenCheckable);
         }
 
         @Override
@@ -402,8 +444,9 @@ public abstract class MethodCreator {
         }
 
         @Override
-        protected String getMethodBody() throws Exception {
-            StringBuilder sb = new StringBuilder();
+        protected String getMethodBody(RoleType routeRoleType)
+                throws Exception {
+            StringBuilder sb = new StringBuilder(forbiddenCheckable.checkForbidden(routeRoleType));
             sb.append("try {\n");
 
             ///start of registerMethod
@@ -431,21 +474,14 @@ public abstract class MethodCreator {
                     .append("try {\n");
 
             ///if resource have role type
-            RoleType routeRoleType = RoleType.ADMIN;
-            try {
-                routeRoleType = RoleType
-                        .getFromName(routeConfig.getRole());
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
             if (routeRoleType != RoleType.NEEDLESS) {
-                sb.append("final Session session = doAuthorization(httpHeaders);\n"
-                        .concat("if(!RoleType.")
+                sb.append("if(!RoleType."
                         .concat(routeRoleType.getName())
                         .concat(".isValid(session.getRoleType()))\n")
                         .concat("asyncResponse.resume(createResponse(unauthorizedPianaResponse, session, httpHeaders));\n"));
-            } else
-                sb.append("final Session session = doRevivalSession(httpHeaders);\n");
+            }
+//            else
+//                sb.append("final Session session = doRevivalSession(httpHeaders);\n");
 
             sb.append("PianaResponse response = invokeMethod(m, session,");
             if(routeConfig.isUrlInjected())
@@ -470,7 +506,7 @@ public abstract class MethodCreator {
                             16, SecureRandomType.SHA_1_PRNG)));
             sb.append("} catch (Exception ".concat(excName).concat(") {\n"));
             sb.append("logger.error(".concat(excName).concat(");\n"));
-            sb.append("asyncResponse.resume(internalServerErrorPianaResponse);\n");
+            sb.append("asyncResponse.resume(createResponse(internalServerErrorPianaResponse, session, httpHeaders));\n");
             sb.append("}\n});\n");
             ///end of executorService
 
@@ -479,7 +515,7 @@ public abstract class MethodCreator {
                             16, SecureRandomType.SHA_1_PRNG)));
             sb.append("} catch (Exception ".concat(excName2).concat(") {\n"));
             sb.append("logger.error(".concat(excName2).concat(");\n"));
-            sb.append("asyncResponse.resume(internalServerErrorPianaResponse);\n");
+            sb.append("asyncResponse.resume(createResponse(internalServerErrorPianaResponse, session, httpHeaders));\n");
             sb.append("}\n");
 
             return sb.toString();
@@ -487,9 +523,11 @@ public abstract class MethodCreator {
     }
 
     private static class SyncAsset extends MethodCreator {
-        private SyncAsset(String urlPattern, String methodPattern,
-                          PianaRouteConfig routeConfig) {
-            super(urlPattern, methodPattern, routeConfig);
+        private SyncAsset(String urlPattern,
+                          String methodPattern,
+                          PianaRouteConfig routeConfig,
+                          ForbiddenCheckable forbiddenCheckable) {
+            super(urlPattern, methodPattern, routeConfig, forbiddenCheckable);
         }
 
         @Override
@@ -499,15 +537,9 @@ public abstract class MethodCreator {
         }
 
         @Override
-        protected String getMethodBody() throws Exception {
-            StringBuilder sb = new StringBuilder();
-            RoleType routeRoleType = RoleType.ADMIN;
-            try {
-                routeRoleType = RoleType
-                        .getFromName(routeConfig.getRole());
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
+        protected String getMethodBody(RoleType routeRoleType)
+                throws Exception {
+            StringBuilder sb = new StringBuilder(forbiddenCheckable.checkForbidden(routeRoleType));
 
             if(pathParamList != null
                     && pathParamList.length == 1) {
@@ -530,18 +562,16 @@ public abstract class MethodCreator {
                         .concat("return createResponse(notFoundPianaResponse, null, httpHeaders);\n")
                         .concat("}\n"));
             }
+//            else
+//                sb.append("final Session session = doRevivalSession(httpHeaders);\n");
 
+            sb.append("try {\n");
             if (routeRoleType != RoleType.NEEDLESS) {
-                sb.append("final Session session = doAuthorization(httpHeaders);\n"
-                        .concat("if(!RoleType.")
+                sb.append("if(!RoleType."
                         .concat(routeRoleType.getName())
                         .concat(".isValid(session.getRoleType()))\n")
                         .concat("return createResponse(unauthorizedPianaResponse, session, httpHeaders);\n"));
-            } else
-                sb.append("final Session session = doRevivalSession(httpHeaders);\n");
-
-            sb.append("try {\n");
-
+            }
             sb.append("PianaAssetResolver assetResolver = "
                     .concat("registerAssetResolver(\"")
                     .concat(methodKey)
@@ -607,9 +637,11 @@ public abstract class MethodCreator {
     }
 
     private static class ASyncAsset extends MethodCreator {
-        private ASyncAsset(String urlPattern, String methodPattern,
-                           PianaRouteConfig routeConfig) {
-            super(urlPattern, methodPattern, routeConfig);
+        private ASyncAsset(String urlPattern,
+                           String methodPattern,
+                           PianaRouteConfig routeConfig,
+                           ForbiddenCheckable forbiddenCheckable) {
+            super(urlPattern, methodPattern, routeConfig, forbiddenCheckable);
         }
 
         @Override
@@ -619,8 +651,9 @@ public abstract class MethodCreator {
         }
 
         @Override
-        protected String getMethodBody() throws Exception {
-            StringBuilder sb = new StringBuilder();
+        protected String getMethodBody(RoleType routeRoleType)
+                throws Exception {
+            StringBuilder sb = new StringBuilder(forbiddenCheckable.checkForbidden(routeRoleType));
 
             sb.append("try {\n");
 
@@ -686,21 +719,14 @@ public abstract class MethodCreator {
             }
 
             ///if resource have role type
-            RoleType routeRoleType = RoleType.ADMIN;
-            try {
-                routeRoleType = RoleType
-                        .getFromName(routeConfig.getRole());
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-            }
             if (routeRoleType != RoleType.NEEDLESS) {
-                sb.append("final Session session = doAuthorization(httpHeaders);\n"
-                        .concat("if(!RoleType.")
+                sb.append("if(!RoleType."
                         .concat(routeRoleType.getName())
                         .concat(".isValid(session.getRoleType()))\n")
                         .concat("asyncResponse.resume(createResponse(unauthorizedPianaResponse, session, httpHeaders));\n"));
-            } else
-                sb.append("final Session session = doRevivalSession(httpHeaders);\n");
+            }
+//            else
+//                sb.append("final Session session = doRevivalSession(httpHeaders);\n");
 
             sb.append(
                     "PianaResponse response = invokeMethod(m, session, assetResolver,");
@@ -727,7 +753,7 @@ public abstract class MethodCreator {
                             16, SecureRandomType.SHA_1_PRNG)));
             sb.append("} catch (Exception ".concat(excName).concat(") {\n"));
             sb.append("logger.error(".concat(excName).concat(");\n"));
-            sb.append("asyncResponse.resume(internalServerErrorPianaResponse);\n");
+            sb.append("asyncResponse.resume(createResponse(internalServerErrorPianaResponse, session, httpHeaders));\n");
             sb.append("}\n});\n");
             ///end of executorService
 
@@ -736,7 +762,7 @@ public abstract class MethodCreator {
                             16, SecureRandomType.SHA_1_PRNG)));
             sb.append("} catch (Exception ".concat(excName2).concat(") {\n"));
             sb.append("logger.error(".concat(excName2).concat(");\n"));
-            sb.append("asyncResponse.resume(internalServerErrorPianaResponse);\n");
+            sb.append("asyncResponse.resume(createResponse(internalServerErrorPianaResponse, session, httpHeaders));\n");
             sb.append("}\n");
 
             return sb.toString();

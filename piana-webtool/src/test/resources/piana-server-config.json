@@ -3,6 +3,7 @@
   "http-ip": "localhost",
   "http-port": "8001",
   "http-base-route": "",
+  "output-class-path": "d:/classes",
   "rest-filters": [
   ],
   "session":{

@@ -11,6 +11,7 @@ import java.util.*;
  * @author Mohammad Rahmati, 4/18/2017 4:30 PM
  */
 public class Session {
+    private boolean wrongdoer;
     private String sessionName;
     private KeyPair keyPair;
     private RoleType roleType;
@@ -101,5 +102,13 @@ public class Session {
         return CryptoMaker.decrypt(rawMessage,
                 keyPair.getPrivate(),
                 CryptoAttribute.RSA);
+    }
+
+    public Boolean isWrongdoer() {
+        return wrongdoer;
+    }
+
+    public void setWrongdoer(Boolean wrongdoer) {
+        this.wrongdoer = wrongdoer;
     }
 }
