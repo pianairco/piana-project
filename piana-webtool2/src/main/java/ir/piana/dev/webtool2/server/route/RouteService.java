@@ -1,14 +1,18 @@
-package ir.piana.dev.server.route;
+package ir.piana.dev.webtool2.server.route;
 
-import ir.piana.dev.server.asset.PianaAssetResolver;
-import ir.piana.dev.server.config.PianaRouterConfig;
-import ir.piana.dev.server.config.PianaServerConfig;
-import ir.piana.dev.server.response.PianaResponse;
-import ir.piana.dev.server.session.Session;
-import ir.piana.dev.server.session.SessionManager;
+import com.sun.research.ws.wadl.HTTPMethods;
+import ir.piana.dev.webtool2.server.annotation.MethodHandler;
+import ir.piana.dev.webtool2.server.annotation.PianaServer;
+import ir.piana.dev.webtool2.server.asset.PianaAssetResolver;
+import ir.piana.dev.webtool2.server.response.PianaResponse;
+import ir.piana.dev.webtool2.server.session.Session;
+import ir.piana.dev.webtool2.server.session.SessionManager;
 import org.apache.log4j.Logger;
 
 import javax.annotation.PostConstruct;
+import javax.ws.rs.GET;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
@@ -34,8 +38,7 @@ public class RouteService {
 
     @Context
     protected Configuration config;
-    protected PianaServerConfig serverConfig = null;
-    protected PianaRouterConfig routerConfig = null;
+    protected PianaServer serverConfig = null;
     protected SessionManager sessionManager = null;
     protected Map<String, Method> methodMap =
             new LinkedHashMap<>();
@@ -60,17 +63,16 @@ public class RouteService {
     @PostConstruct
     protected void init()
             throws Exception {
-        serverConfig = (PianaServerConfig) config
-                .getProperty(PianaServerConfig
-                        .PIANA_SERVER_CONFIG);
-        routerConfig = (PianaRouterConfig) config
-                .getProperty(PianaRouterConfig
-                        .PIANA_ROUTER_CONFIG);
+        serverConfig = (PianaServer) config
+                .getProperty("PIANA_SERVER_CONFIG");
         sessionManager = (SessionManager) config
                 .getProperty(SessionManager
                         .PIANA_SESSION_MANAGER);
     }
 
+    @MethodHandler(
+            path = @Path("hello-world/{f-name}"),
+            httpMethod = "GET")
     protected Map<String, List<String>> createParameters(
             UriInfo uriInfo) {
         Map<String, List<String>> collect = Stream.concat(
@@ -203,7 +205,7 @@ public class RouteService {
                                             .getCharset()
                                             .displayName()));
         }
-        if(serverConfig.isRemoveOtherCookies())
+        if(serverConfig.removeOtherCookies())
             resBuilder.cookie(sessionManager
                     .removeOtherCookies(
                             session, httpHeaders));
