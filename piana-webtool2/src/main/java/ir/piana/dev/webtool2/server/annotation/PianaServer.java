@@ -21,7 +21,7 @@ public @interface PianaServer {
     String docStartUrl() default "piana-doc";
     String httpBaseRoute() default "";
     boolean removeOtherCookies() default false;
+    String outputClassPath() default "./classes";
     PianaServerSession serverSession() default @PianaServerSession;
     PianaServerCORS serverCORS() default @PianaServerCORS;
-    AssetHandler[] assetHandlers() default {};
 }

@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE) //on class level
 public @interface Handler {
     String baseUrl();
+    HandlerType handlerType() default HandlerType.METHOD_HANDLER;
 }

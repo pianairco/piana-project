@@ -5,7 +5,9 @@ import org.reflections.Reflections;
 import javax.ws.rs.Path;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -34,21 +36,15 @@ public abstract class AnnotationController {
         return annotation == null ? null : (PianaServer) annotation;
     }
 
-    public static List<Class> getAssetHandlerClasses() {
-        List<Class> classes = new ArrayList<>();
-        Reflections reflections = new Reflections();
-        Set<Class<?>> typesAnnotatedWith = reflections
-                .getTypesAnnotatedWith(AssetHandler.class);
-        if(typesAnnotatedWith != null && !typesAnnotatedWith.isEmpty())
-            classes.addAll(typesAnnotatedWith);
-        return classes;
-    }
-
-    public static AssetHandler getAssetHandler(Class targetClass) {
-        Annotation annotation = targetClass
-                .getAnnotation(AssetHandler.class);
-        return annotation == null ? null : (AssetHandler) annotation;
-    }
+//    public static List<Class> getAssetHandlerClasses() {
+//        List<Class> classes = new ArrayList<>();
+//        Reflections reflections = new Reflections();
+//        Set<Class<?>> typesAnnotatedWith = reflections
+//                .getTypesAnnotatedWith(AssetHandler.class);
+//        if(typesAnnotatedWith != null && !typesAnnotatedWith.isEmpty())
+//            classes.addAll(typesAnnotatedWith);
+//        return classes;
+//    }
 
     public static List<Class> getHandlerClasses() {
         List<Class> classes = new ArrayList<>();
@@ -64,6 +60,47 @@ public abstract class AnnotationController {
         Annotation annotation = targetClass
                 .getAnnotation(Handler.class);
         return annotation == null ? null : (Handler) annotation;
+    }
+
+    public static AssetHandler getAssetHandler(Class targetClass) {
+        Annotation annotation = targetClass
+                .getAnnotation(AssetHandler.class);
+        return annotation == null ? null : (AssetHandler) annotation;
+    }
+
+    public static List<Method> getHandlerMethods(Class targetClass) {
+        List<Method> methods = new ArrayList<>();
+        final List<Method> allMethods = new ArrayList<Method>(
+                Arrays.asList(targetClass.getDeclaredMethods()));
+        for (final Method method : allMethods) {
+            if (method.isAnnotationPresent(MethodHandler.class)) {
+                Annotation annotInstance = method.getAnnotation(MethodHandler.class);
+                // TODO process annotInstance
+                methods.add(method);
+            }
+        }
+//        Reflections reflections = new Reflections();
+//        Set<Method> methodsAnnotatedWith = reflections
+//                .getMethodsAnnotatedWith(MethodHandler.class);
+//        if(methodsAnnotatedWith != null && !methodsAnnotatedWith.isEmpty())
+//            methods.addAll(methodsAnnotatedWith);
+        return methods;
+    }
+
+//    public static List<Method> getHandlerMethods() {
+//        List<Method> methods = new ArrayList<>();
+//        Reflections reflections = new Reflections();
+//        Set<Method> methodsAnnotatedWith = reflections
+//                .getMethodsAnnotatedWith(MethodHandler.class);
+//        if(methodsAnnotatedWith != null && !methodsAnnotatedWith.isEmpty())
+//            methods.addAll(methodsAnnotatedWith);
+//        return methods;
+//    }
+
+    public static MethodHandler getMethodHandler(Method targetMethod){
+        Annotation annotation = targetMethod
+                .getAnnotation(MethodHandler.class);
+        return annotation == null ? null : (MethodHandler) annotation;
     }
 
     public static void main(String[] args) {

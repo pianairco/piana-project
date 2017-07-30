@@ -56,6 +56,11 @@ public abstract class BaseHttpServer {
             logger.error("server is started already.");
             return;
         }
+
+        Set<Class<?>> handlerClasses = RouteClassGenerator
+                .generateHandlerClasses(pianaServer);
+        resourceConfig.registerClasses(handlerClasses);
+
 //        Set<Class<?>> routeClasses = RouteClassGenerator
 //                    .generateRouteClasses(pianaServer);
 //

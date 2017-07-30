@@ -36,39 +36,25 @@ class AssetService {
     public static PianaResponse getAsset(
             Session session,
             PianaAssetResolver assetResolver,
-            Map<String, List<String>> map) {
-        String path = null;
-        if(map != null && !map.isEmpty() && (path = map.get(map.keySet().toArray()[0]).get(0)) != null)
+            String filePath) {
+        if(filePath == null || filePath.isEmpty())
             return getAsset(session,
-                    assetResolver,
-                    path,
-                    map);
+                    assetResolver);
         else {
-            return getAsset(session, assetResolver);
+            PianaAsset asset = null;
+            try {
+                asset = assetResolver
+                        .resolve(filePath);
+            } catch (Exception e) {
+                return notFoundResponse();
+            }
+            return new PianaResponse(
+                    Status.OK,
+                    0,
+                    asset.getBytes(),
+                    asset.getMediaType(),
+                    Charset.forName("UTF-8"));
         }
-    }
-
-    //called if path is exist
-    public static PianaResponse getAsset(
-            Session session,
-            PianaAssetResolver assetResolver,
-            String path,
-            Map<String, List<String>> map) {
-        if(path == null || path.isEmpty())
-            return getAsset(session, assetResolver);
-        PianaAsset asset = null;
-        try {
-            asset = assetResolver
-                    .resolve(path);
-        } catch (Exception e) {
-            return notFoundResponse();
-        }
-        return new PianaResponse(
-                Status.OK,
-                0,
-                asset.getBytes(),
-                asset.getMediaType(),
-                Charset.forName("UTF-8"));
     }
 
     protected static PianaResponse notFoundResponse() {

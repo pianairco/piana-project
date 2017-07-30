@@ -1,6 +1,5 @@
 package ir.piana.dev.webtool2.server.route;
 
-import com.sun.research.ws.wadl.HTTPMethods;
 import ir.piana.dev.webtool2.server.annotation.MethodHandler;
 import ir.piana.dev.webtool2.server.annotation.PianaServer;
 import ir.piana.dev.webtool2.server.asset.PianaAssetResolver;
@@ -58,6 +57,7 @@ public class RouteService {
             new PianaResponse(Status.INTERNAL_SERVER_ERROR, null);
 
     public RouteService() {
+
     }
 
     @PostConstruct
@@ -70,9 +70,6 @@ public class RouteService {
                         .PIANA_SESSION_MANAGER);
     }
 
-    @MethodHandler(
-            path = @Path("hello-world/{f-name}"),
-            httpMethod = "GET")
     protected Map<String, List<String>> createParameters(
             UriInfo uriInfo) {
         Map<String, List<String>> collect = Stream.concat(
